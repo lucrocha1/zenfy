@@ -32,15 +32,35 @@ const getChartColors = (streak: number) => {
 
 const getFlameStyles = (streak: number) => {
   if (streak >= 30) {
-    return { bg: 'bg-purple-100 dark:bg-purple-900/30', icon: 'text-purple-500', animate: 'animate-pulse', border: 'border-l-4 border-l-purple-500' };
+    return { 
+      bg: 'bg-purple-100 dark:bg-purple-900/30', 
+      icon: 'text-purple-500', 
+      animate: 'animate-pulse', 
+      cardGradient: 'bg-gradient-to-r from-purple-500/20 via-purple-400/10 to-transparent dark:from-purple-500/30 dark:via-purple-400/15 dark:to-transparent'
+    };
   } else if (streak >= 7) {
-    return { bg: 'bg-yellow-100 dark:bg-yellow-900/30', icon: 'text-yellow-500', animate: 'animate-pulse', border: 'border-l-4 border-l-yellow-500' };
+    return { 
+      bg: 'bg-yellow-100 dark:bg-yellow-900/30', 
+      icon: 'text-yellow-500', 
+      animate: 'animate-pulse', 
+      cardGradient: 'bg-gradient-to-r from-yellow-500/20 via-yellow-400/10 to-transparent dark:from-yellow-500/30 dark:via-yellow-400/15 dark:to-transparent'
+    };
   } else if (streak >= 2) {
-    return { bg: 'bg-orange-100 dark:bg-orange-900/30', icon: 'text-orange-500', animate: 'animate-pulse', border: 'border-l-4 border-l-orange-500' };
+    return { 
+      bg: 'bg-orange-100 dark:bg-orange-900/30', 
+      icon: 'text-orange-500', 
+      animate: 'animate-pulse', 
+      cardGradient: 'bg-gradient-to-r from-orange-500/20 via-orange-400/10 to-transparent dark:from-orange-500/30 dark:via-orange-400/15 dark:to-transparent'
+    };
   } else if (streak >= 1) {
-    return { bg: 'bg-orange-50 dark:bg-orange-900/20', icon: 'text-orange-400', animate: '', border: 'border-l-4 border-l-orange-400' };
+    return { 
+      bg: 'bg-orange-50 dark:bg-orange-900/20', 
+      icon: 'text-orange-400', 
+      animate: '', 
+      cardGradient: 'bg-gradient-to-r from-orange-400/15 via-orange-300/8 to-transparent dark:from-orange-400/25 dark:via-orange-300/10 dark:to-transparent'
+    };
   }
-  return { bg: 'bg-muted', icon: 'text-muted-foreground', animate: '', border: '' };
+  return { bg: 'bg-muted', icon: 'text-muted-foreground', animate: '', cardGradient: '' };
 };
 
 const getStreakSubtitle = (streak: number, sessions: any[]) => {
@@ -83,7 +103,7 @@ export const Performance = () => {
         <h2 className="text-2xl font-light text-center text-foreground mb-8">Progresso</h2>
         
         {/* Streak Card */}
-        <Card className={`p-6 ${flameStyles.border}`}>
+        <Card className={`p-6 overflow-hidden ${flameStyles.cardGradient}`}>
           <div className="flex items-center gap-4">
             <div className={`p-3 rounded-full ${flameStyles.bg}`}>
               <Flame className={`w-6 h-6 ${flameStyles.icon} ${flameStyles.animate}`} />
