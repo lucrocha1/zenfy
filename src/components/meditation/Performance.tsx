@@ -165,11 +165,11 @@ export const Performance = () => {
             </div>
             
             {/* Weekday Icons */}
-            <div className="flex justify-around items-center mt-3 bg-white/10 rounded-2xl py-4 px-2">
+            <div className="flex justify-between items-center mt-3 bg-white/10 rounded-xl py-3 px-3 sm:px-4">
               {weekDays.map((day, index) => (
-                <div key={index} className="flex flex-col items-center gap-2">
+                <div key={index} className="flex flex-col items-center gap-1.5">
                   <div 
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all ${
                       day.hasSession 
                         ? `${flameStyles.checkBg}` 
                         : day.isToday 
@@ -178,12 +178,12 @@ export const Performance = () => {
                     }`}
                   >
                     {day.hasSession ? (
-                      <Check className={`w-5 h-5 ${flameStyles.checkIcon}`} strokeWidth={2.5} />
+                      <Check className={`w-4 h-4 sm:w-5 sm:h-5 ${flameStyles.checkIcon}`} strokeWidth={2.5} />
                     ) : day.isToday ? (
-                      <Flame className={`w-5 h-5 ${streak > 0 ? flameStyles.textColor : 'text-white/50'}`} />
+                      <Flame className={`w-4 h-4 sm:w-5 sm:h-5 ${streak > 0 ? flameStyles.textColor : 'text-white/50'}`} />
                     ) : null}
                   </div>
-                  <span className={`text-[11px] capitalize ${day.isToday ? flameStyles.textColor + ' font-bold' : flameStyles.subtitleColor}`}>
+                  <span className={`text-[10px] sm:text-[11px] capitalize ${day.isToday ? flameStyles.textColor + ' font-bold' : flameStyles.subtitleColor}`}>
                     {day.label}
                   </span>
                 </div>
