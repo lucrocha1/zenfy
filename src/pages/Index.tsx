@@ -1,13 +1,28 @@
 import { Timer } from '@/components/meditation/Timer';
 import { Performance } from '@/components/meditation/Performance';
 import { BadgesLevels } from '@/components/meditation/BadgesLevels';
+import { CelebrationModal } from '@/components/meditation/CelebrationModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Timer as TimerIcon, TrendingUp, Trophy } from 'lucide-react';
+import { useMeditationSessions } from '@/hooks/useMeditationSessions';
+import { useAchievementCelebration } from '@/hooks/useAchievementCelebration';
 
 const Index = () => {
+  const { sessions } = useMeditationSessions();
+  const { celebration, dismissCelebration } = useAchievementCelebration(sessions);
+
   return (
     <div className="min-h-screen bg-background">
+      <CelebrationModal
+        isOpen={!!celebration}
+        onClose={dismissCelebration}
+        type={celebration?.type || 'badge'}
+        title={celebration?.title || ''}
+        description={celebration?.description || ''}
+        icon={celebration?.icon || ''}
+      />
+      
       <Tabs defaultValue="meditar" className="w-full">
         <div className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border z-10">
           <div className="max-w-2xl mx-auto px-4 flex items-center">
