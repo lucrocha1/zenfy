@@ -17,7 +17,7 @@ import {
   analyzeBestTimeToMeditate,
 } from '@/utils/meditationStats';
 import { calculateMaxStreak } from '@/utils/gamification';
-import { Flame, Clock, Calendar, Hash, Trophy, Check, Target, Settings, TrendingUp } from 'lucide-react';
+import { Flame, Clock, Calendar, Hash, Trophy, Check, Target, Settings, TrendingUp, Snowflake } from 'lucide-react';
 import {
   AreaChart,
   Area,
@@ -39,6 +39,7 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { StreakFreezeCard } from './StreakFreezeCard';
 
 const getChartColors = (streak: number) => {
   if (streak >= 30) {
@@ -343,6 +344,9 @@ export const Performance = () => {
             </div>
           </Card>
         )}
+
+        {/* Streak Freeze Card */}
+        <StreakFreezeCard />
 
         {/* Empty State Message */}
         {!hasAnyData && (
