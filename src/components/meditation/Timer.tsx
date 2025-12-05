@@ -105,37 +105,59 @@ export const Timer = () => {
             </div>
             
             {/* Custom Time Input */}
-            <div className="flex gap-2 justify-center">
-              <Input
-                type="number"
-                placeholder="Minutos"
-                value={customMinutes}
-                onChange={(e) => setCustomMinutes(e.target.value)}
-                className="w-24 text-center"
-                min={1}
-                max={180}
-                onKeyDown={(e) => e.key === 'Enter' && handleCustomTime()}
-              />
-              <Button variant="outline" size="sm" onClick={handleCustomTime}>
-                Definir
-              </Button>
+            <div className="flex flex-col items-center gap-2 pt-2 border-t border-border">
+              <span className="text-xs text-muted-foreground">Tempo personalizado</span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setCustomMinutes(prev => String(Math.max(1, (parseInt(prev) || 10) - 5)))}
+                >
+                  -
+                </Button>
+                <Input
+                  type="number"
+                  value={customMinutes}
+                  onChange={(e) => setCustomMinutes(e.target.value)}
+                  className="w-16 text-center h-8"
+                  min={1}
+                  max={180}
+                  placeholder="10"
+                />
+                <span className="text-sm text-muted-foreground">min</span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setCustomMinutes(prev => String(Math.min(180, (parseInt(prev) || 10) + 5)))}
+                >
+                  +
+                </Button>
+                <Button variant="secondary" size="sm" onClick={handleCustomTime}>
+                  Aplicar
+                </Button>
+              </div>
             </div>
 
             {/* Sound Selector */}
-            <div className="flex items-center justify-center gap-2">
-              <Volume2 className="w-4 h-4 text-muted-foreground" />
-              <Select value={selectedSound} onValueChange={handleSoundChange}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SOUND_OPTIONS.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col items-center gap-2 pt-2">
+              <span className="text-xs text-muted-foreground">Som ao finalizar</span>
+              <div className="flex items-center gap-2">
+                <Volume2 className="w-4 h-4 text-muted-foreground" />
+                <Select value={selectedSound} onValueChange={handleSoundChange}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover">
+                    {SOUND_OPTIONS.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         )}
