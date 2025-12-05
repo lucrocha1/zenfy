@@ -3,7 +3,6 @@ import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
-import { useChallenges } from '@/hooks/useChallenges';
 import { getTotalDuration } from '@/utils/meditationStats';
 import {
   getCurrentLevel,
@@ -13,16 +12,12 @@ import {
   BADGES,
   LEVELS,
 } from '@/utils/gamification';
-import { Trophy, Star, Check, Lock, Share2, Plus, Flag } from 'lucide-react';
+import { Trophy, Star, Check, Lock, Share2 } from 'lucide-react';
 import { ShareModal } from './ShareModal';
-import { ChallengeCard } from './ChallengeCard';
-import { NewChallengeModal } from './NewChallengeModal';
 
 export const BadgesLevels = () => {
   const { sessions } = useMeditationSessions();
-  const { challenges, activeChallenge } = useChallenges();
   const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [challengeModalOpen, setChallengeModalOpen] = useState(false);
   
   const totalMinutes = Math.round(getTotalDuration(sessions) / 60);
   const maxStreak = calculateMaxStreak(sessions);
@@ -96,47 +91,6 @@ export const BadgesLevels = () => {
             <Share2 className="w-4 h-4" />
             <span className="hidden sm:inline">Compartilhar</span>
           </Button>
-        </div>
-
-        {/* Challenges Section */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Flag className="w-5 h-5 text-muted-foreground" />
-              <h3 className="text-lg font-medium text-foreground">Desafios</h3>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setChallengeModalOpen(true)}
-              className="gap-1.5"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Novo</span>
-            </Button>
-          </div>
-          
-          {activeChallenge ? (
-            <ChallengeCard challenge={activeChallenge} />
-          ) : (
-            <Card className="p-4 text-center text-muted-foreground border-dashed">
-              <p className="text-sm">Nenhum desafio ativo</p>
-              <p className="text-xs mt-1">Crie um desafio para manter sua consistência!</p>
-            </Card>
-          )}
-          
-          {/* Past challenges */}
-          {challenges.filter(c => c.status !== 'active').length > 0 && (
-            <div className="mt-3 space-y-2">
-              <p className="text-xs text-muted-foreground">Desafios anteriores</p>
-              {challenges
-                .filter(c => c.status !== 'active')
-                .slice(0, 3)
-                .map(challenge => (
-                  <ChallengeCard key={challenge.id} challenge={challenge} />
-                ))}
-            </div>
-          )}
         </div>
 
         {/* Level Card */}
@@ -274,11 +228,6 @@ export const BadgesLevels = () => {
         open={shareModalOpen}
         onOpenChange={setShareModalOpen}
         levelName={levelName}
-      />
-
-      <NewChallengeModal
-        open={challengeModalOpen}
-        onOpenChange={setChallengeModalOpen}
       />
     </div>
   );
