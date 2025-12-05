@@ -36,28 +36,28 @@ const getFlameStyles = (streak: number) => {
       bg: 'bg-purple-100 dark:bg-purple-900/30', 
       icon: 'text-purple-500', 
       animate: 'animate-pulse', 
-      cardGradient: 'bg-gradient-to-r from-purple-500/25 via-purple-400/15 via-70% to-purple-300/5 dark:from-purple-500/35 dark:via-purple-400/20 dark:to-purple-300/10'
+      cardGradient: 'bg-gradient-to-r from-purple-400/40 via-purple-300/25 via-80% to-purple-200/10 dark:from-purple-500/50 dark:via-purple-400/30 dark:to-purple-300/15'
     };
   } else if (streak >= 7) {
     return { 
       bg: 'bg-yellow-100 dark:bg-yellow-900/30', 
       icon: 'text-yellow-500', 
       animate: 'animate-pulse', 
-      cardGradient: 'bg-gradient-to-r from-yellow-500/25 via-yellow-400/15 via-70% to-yellow-300/5 dark:from-yellow-500/35 dark:via-yellow-400/20 dark:to-yellow-300/10'
+      cardGradient: 'bg-gradient-to-r from-yellow-400/40 via-yellow-300/25 via-80% to-yellow-200/10 dark:from-yellow-500/50 dark:via-yellow-400/30 dark:to-yellow-300/15'
     };
   } else if (streak >= 2) {
     return { 
       bg: 'bg-orange-100 dark:bg-orange-900/30', 
       icon: 'text-orange-500', 
       animate: 'animate-pulse', 
-      cardGradient: 'bg-gradient-to-r from-orange-500/25 via-orange-400/15 via-70% to-orange-300/5 dark:from-orange-500/35 dark:via-orange-400/20 dark:to-orange-300/10'
+      cardGradient: 'bg-gradient-to-r from-orange-400/40 via-orange-300/25 via-80% to-orange-200/10 dark:from-orange-500/50 dark:via-orange-400/30 dark:to-orange-300/15'
     };
   } else if (streak >= 1) {
     return { 
       bg: 'bg-orange-50 dark:bg-orange-900/20', 
       icon: 'text-orange-400', 
       animate: '', 
-      cardGradient: 'bg-gradient-to-r from-orange-400/20 via-orange-300/12 via-70% to-orange-200/5 dark:from-orange-400/30 dark:via-orange-300/18 dark:to-orange-200/8'
+      cardGradient: 'bg-gradient-to-r from-orange-300/35 via-orange-200/20 via-80% to-orange-100/8 dark:from-orange-400/45 dark:via-orange-300/25 dark:to-orange-200/12'
     };
   }
   return { bg: 'bg-muted', icon: 'text-muted-foreground', animate: '', cardGradient: '' };
