@@ -112,7 +112,7 @@ export const Performance = () => {
 
         {/* Empty State Message */}
         {!hasAnyData && (
-          <p className="text-center text-sm text-muted-foreground py-2">
+            <p className="text-center text-sm text-muted-foreground py-2">
             Comece hoje para ver seus números aparecerem aqui ✨
           </p>
         )}
@@ -208,7 +208,7 @@ export const Performance = () => {
             ) : (
               <div className="h-full flex items-center justify-center">
                 <p className="text-sm text-muted-foreground text-center">
-                  Nenhuma meditação registrada nesta semana ainda
+                  Nenhuma sessão registrada nesta semana ainda
                 </p>
               </div>
             )}
