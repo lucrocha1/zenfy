@@ -12,14 +12,23 @@ import {
 import { calculateMaxStreak } from '@/utils/gamification';
 import { Flame, Clock, Calendar, Hash, Trophy } from 'lucide-react';
 import {
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   ResponsiveContainer,
   Tooltip,
 } from 'recharts';
 import { format, subDays } from 'date-fns';
+
+const getChartColors = (streak: number) => {
+  if (streak >= 30) {
+    return { stroke: '#a855f7', gradient: ['#a855f7', '#7c3aed'] }; // Purple
+  } else if (streak >= 7) {
+    return { stroke: '#eab308', gradient: ['#eab308', '#f59e0b'] }; // Gold
+  }
+  return { stroke: '#3b82f6', gradient: ['#3b82f6', '#60a5fa'] }; // Blue default
+};
 
 const getFlameStyles = (streak: number) => {
   if (streak >= 30) {
@@ -62,6 +71,7 @@ export const Performance = () => {
   const totalDuration = getTotalDuration(sessions);
   const chartData = getWeeklyChartData(sessions);
   const flameStyles = getFlameStyles(streak);
+  const chartColors = getChartColors(streak);
   
   const hasAnyData = totalDuration > 0 || sessions.length > 0;
   const hasChartData = chartData.some(d => d.minutes > 0);
@@ -176,7 +186,13 @@ export const Performance = () => {
           <div className="h-48">
             {hasChartData ? (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={chartColors.gradient[0]} stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor={chartColors.gradient[1]} stopOpacity={0.05}/>
+                    </linearGradient>
+                  </defs>
                   <XAxis 
                     dataKey="day" 
                     axisLine={false}
@@ -198,12 +214,14 @@ export const Performance = () => {
                     labelStyle={{ color: 'hsl(var(--foreground))' }}
                     formatter={(value: number) => [`${value} min`, 'Meditação']}
                   />
-                  <Bar 
-                    dataKey="minutes" 
-                    fill="hsl(var(--primary))" 
-                    radius={[4, 4, 0, 0]}
+                  <Area
+                    type="monotone"
+                    dataKey="minutes"
+                    stroke={chartColors.stroke}
+                    strokeWidth={2}
+                    fill="url(#chartGradient)"
                   />
-                </BarChart>
+                </AreaChart>
               </ResponsiveContainer>
             ) : (
               <div className="h-full flex items-center justify-center">
