@@ -4,13 +4,16 @@ import { BadgesLevels } from '@/components/meditation/BadgesLevels';
 import { CelebrationModal } from '@/components/meditation/CelebrationModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Timer as TimerIcon, TrendingUp, Trophy } from 'lucide-react';
+import { Timer as TimerIcon, TrendingUp, Trophy, LogOut } from 'lucide-react';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
 import { useAchievementCelebration } from '@/hooks/useAchievementCelebration';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const { sessions } = useMeditationSessions();
   const { celebration, dismissCelebration } = useAchievementCelebration(sessions);
+  const { signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -50,7 +53,17 @@ const Index = () => {
                 <span className="sm:hidden">Badges</span>
               </TabsTrigger>
             </TabsList>
-            <ThemeToggle />
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => signOut()}
+                title="Sair"
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
         
