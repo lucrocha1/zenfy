@@ -122,3 +122,94 @@ export const getWeeklyChartData = (sessions: MeditationSession[]) => {
     };
   });
 };
+
+export const getMonthlyChartData = (sessions: MeditationSession[]) => {
+  const now = new Date();
+  const monthStart = startOfMonth(now);
+  const monthEnd = endOfMonth(now);
+  
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  
+  return days.map(day => {
+    const dayStr = format(day, 'yyyy-MM-dd');
+    const daySessions = sessions.filter(s => s.date === dayStr);
+    const totalMinutes = Math.round(getTotalDuration(daySessions) / 60);
+    
+    return {
+      day: format(day, 'd'),
+      date: dayStr,
+      minutes: totalMinutes,
+    };
+  });
+};
+
+const monthNamesPt = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+export const getYearlyChartData = (sessions: MeditationSession[]) => {
+  const now = new Date();
+  const year = now.getFullYear();
+  
+  return monthNamesPt.map((monthName, index) => {
+    const monthSessions = sessions.filter(s => {
+      const sessionDate = parseISO(s.date);
+      return sessionDate.getFullYear() === year && sessionDate.getMonth() === index;
+    });
+    const totalMinutes = Math.round(getTotalDuration(monthSessions) / 60);
+    
+    return {
+      day: monthName,
+      date: `${year}-${String(index + 1).padStart(2, '0')}`,
+      minutes: totalMinutes,
+    };
+  });
+};
+
+export interface TimeOfDayAnalysis {
+  period: string;
+  icon: string;
+  count: number;
+  percentage: number;
+}
+
+export const analyzeBestTimeToMeditate = (sessions: MeditationSession[]): {
+  analysis: TimeOfDayAnalysis[];
+  bestPeriod: string | null;
+} => {
+  if (sessions.length === 0) {
+    return { analysis: [], bestPeriod: null };
+  }
+
+  const periods = {
+    'Manhã': { icon: '🌅', count: 0, range: [5, 11] },
+    'Tarde': { icon: '☀️', count: 0, range: [12, 17] },
+    'Noite': { icon: '🌙', count: 0, range: [18, 23] },
+    'Madrugada': { icon: '🌃', count: 0, range: [0, 4] },
+  };
+
+  sessions.forEach(session => {
+    if (session.started_at) {
+      const hour = new Date(session.started_at).getHours();
+      
+      if (hour >= 5 && hour <= 11) periods['Manhã'].count++;
+      else if (hour >= 12 && hour <= 17) periods['Tarde'].count++;
+      else if (hour >= 18 && hour <= 23) periods['Noite'].count++;
+      else periods['Madrugada'].count++;
+    }
+  });
+
+  const total = Object.values(periods).reduce((sum, p) => sum + p.count, 0);
+  
+  const analysis: TimeOfDayAnalysis[] = Object.entries(periods)
+    .map(([period, data]) => ({
+      period,
+      icon: data.icon,
+      count: data.count,
+      percentage: total > 0 ? Math.round((data.count / total) * 100) : 0,
+    }))
+    .filter(p => p.count > 0)
+    .sort((a, b) => b.count - a.count);
+
+  const bestPeriod = analysis.length > 0 ? analysis[0].period : null;
+
+  return { analysis, bestPeriod };
+};

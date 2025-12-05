@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
 import {
   formatDuration,
@@ -7,13 +9,20 @@ import {
   getTotalDuration,
   calculateStreak,
   getWeeklyChartData,
+  getMonthlyChartData,
+  getYearlyChartData,
   getTodaySessions,
+  getDailyGoal,
+  saveDailyGoal,
+  analyzeBestTimeToMeditate,
 } from '@/utils/meditationStats';
 import { calculateMaxStreak } from '@/utils/gamification';
-import { Flame, Clock, Calendar, Hash, Trophy, Check } from 'lucide-react';
+import { Flame, Clock, Calendar, Hash, Trophy, Check, Target, Settings, TrendingUp } from 'lucide-react';
 import {
   AreaChart,
   Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   ResponsiveContainer,
@@ -21,6 +30,15 @@ import {
 } from 'recharts';
 import { format, subDays, startOfWeek, addDays, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Slider } from '@/components/ui/slider';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const getChartColors = (streak: number) => {
   if (streak >= 30) {
@@ -100,6 +118,10 @@ const getStreakSubtitle = (streak: number, sessions: any[]) => {
 
 export const Performance = () => {
   const { sessions } = useMeditationSessions();
+  const [dailyGoal, setDailyGoal] = useState(getDailyGoal());
+  const [tempGoal, setTempGoal] = useState(dailyGoal);
+  const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
+  const [chartPeriod, setChartPeriod] = useState<'week' | 'month' | 'year'>('week');
   
   const streak = calculateStreak(sessions);
   const maxStreak = calculateMaxStreak(sessions);
@@ -108,12 +130,33 @@ export const Performance = () => {
   const weeklyDuration = getTotalDuration(weeklySessions);
   const monthlyDuration = getTotalDuration(monthlySessions);
   const totalDuration = getTotalDuration(sessions);
-  const chartData = getWeeklyChartData(sessions);
+  const todaySessions = getTodaySessions(sessions);
+  const todayMinutes = Math.round(getTotalDuration(todaySessions) / 60);
+  const goalProgress = Math.min((todayMinutes / dailyGoal) * 100, 100);
+  
+  const weeklyChartData = getWeeklyChartData(sessions);
+  const monthlyChartData = getMonthlyChartData(sessions);
+  const yearlyChartData = getYearlyChartData(sessions);
+  
+  const chartData = chartPeriod === 'week' 
+    ? weeklyChartData 
+    : chartPeriod === 'month' 
+      ? monthlyChartData 
+      : yearlyChartData;
+  
   const flameStyles = getFlameStyles(streak);
   const chartColors = getChartColors(streak);
   
+  const { analysis: timeAnalysis, bestPeriod } = analyzeBestTimeToMeditate(sessions);
+  
   const hasAnyData = totalDuration > 0 || sessions.length > 0;
   const hasChartData = chartData.some(d => d.minutes > 0);
+  
+  const handleSaveGoal = () => {
+    saveDailyGoal(tempGoal);
+    setDailyGoal(tempGoal);
+    setIsGoalDialogOpen(false);
+  };
   const streakSubtitle = getStreakSubtitle(streak, sessions);
 
   // Get current week days for the weekday display
@@ -149,6 +192,74 @@ export const Performance = () => {
       <div className="max-w-2xl mx-auto space-y-6">
         <h2 className="text-2xl font-light text-center text-foreground mb-8">Progresso</h2>
         
+        {/* Daily Goal Card */}
+        <Card className="p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-primary" />
+              <h3 className="font-medium text-foreground">Meta Diária</h3>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                setTempGoal(dailyGoal);
+                setIsGoalDialogOpen(true);
+              }}
+            >
+              <Settings className="w-4 h-4 text-muted-foreground" />
+            </Button>
+          </div>
+          <div className="space-y-3">
+            <Progress value={goalProgress} className="h-3" />
+            <div className="flex justify-between items-center">
+              <span className="text-lg font-semibold text-foreground">
+                {todayMinutes} de {dailyGoal} min
+              </span>
+              {todayMinutes >= dailyGoal ? (
+                <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+                  Meta atingida! 🎉
+                </span>
+              ) : (
+                <span className="text-sm text-muted-foreground">
+                  Faltam {dailyGoal - todayMinutes} min
+                </span>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        {/* Daily Goal Dialog */}
+        <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Definir Meta Diária</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 py-4">
+              <div className="text-center">
+                <span className="text-4xl font-bold text-primary">{tempGoal}</span>
+                <span className="text-lg text-muted-foreground ml-2">minutos</span>
+              </div>
+              <Slider
+                value={[tempGoal]}
+                onValueChange={(value) => setTempGoal(value[0])}
+                min={5}
+                max={60}
+                step={5}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>5 min</span>
+                <span>60 min</span>
+              </div>
+              <Button onClick={handleSaveGoal} className="w-full">
+                Salvar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Streak Card */}
         <Card className={`p-6 overflow-hidden ${flameStyles.cardGradient}`}>
           <div className="flex flex-col gap-4">
@@ -290,56 +401,132 @@ export const Performance = () => {
           </div>
         </div>
 
-        {/* Weekly Chart */}
+        {/* Best Time to Meditate Card */}
+        {timeAnalysis.length > 0 && (
+          <Card className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp className="w-4 h-4 text-muted-foreground" />
+              <h3 className="text-sm font-medium text-foreground">Quando você medita</h3>
+            </div>
+            <div className="space-y-3">
+              {timeAnalysis.map((item) => (
+                <div key={item.period} className="space-y-1">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="flex items-center gap-2">
+                      <span>{item.icon}</span>
+                      <span className="text-foreground">{item.period}</span>
+                    </span>
+                    <span className="text-muted-foreground">{item.percentage}%</span>
+                  </div>
+                  <Progress value={item.percentage} className="h-2" />
+                </div>
+              ))}
+              {bestPeriod && (
+                <p className="text-sm text-muted-foreground pt-2 border-t border-border mt-3">
+                  Você costuma meditar {bestPeriod === 'Manhã' ? 'pela manhã' : 
+                    bestPeriod === 'Tarde' ? 'à tarde' : 
+                    bestPeriod === 'Noite' ? 'à noite' : 'de madrugada'} ✨
+                </p>
+              )}
+            </div>
+          </Card>
+        )}
+
+        {/* Chart with Period Tabs */}
         <Card className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Calendar className="w-4 h-4 text-muted-foreground" />
-            <p className="text-sm font-medium text-foreground">Minutos por dia (semana atual)</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">
+                {chartPeriod === 'week' ? 'Minutos por dia' : 
+                 chartPeriod === 'month' ? 'Minutos por dia (mês)' : 'Minutos por mês'}
+              </p>
+            </div>
+            <Tabs value={chartPeriod} onValueChange={(v) => setChartPeriod(v as any)}>
+              <TabsList className="h-8">
+                <TabsTrigger value="week" className="text-xs px-3 h-7">Semana</TabsTrigger>
+                <TabsTrigger value="month" className="text-xs px-3 h-7">Mês</TabsTrigger>
+                <TabsTrigger value="year" className="text-xs px-3 h-7">Ano</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
           <div className="h-48">
             {hasChartData ? (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={chartColors.gradient[0]} stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor={chartColors.gradient[1]} stopOpacity={0.05}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis 
-                    dataKey="day" 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                    width={30}
-                  />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                    }}
-                    labelStyle={{ color: 'hsl(var(--foreground))' }}
-                    formatter={(value: number) => [`${value} min`, 'Meditação']}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="minutes"
-                    stroke={chartColors.stroke}
-                    strokeWidth={2}
-                    fill="url(#chartGradient)"
-                  />
-                </AreaChart>
+                {chartPeriod === 'week' ? (
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={chartColors.gradient[0]} stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor={chartColors.gradient[1]} stopOpacity={0.05}/>
+                      </linearGradient>
+                    </defs>
+                    <XAxis 
+                      dataKey="day" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                    />
+                    <YAxis 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                      width={30}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                      }}
+                      labelStyle={{ color: 'hsl(var(--foreground))' }}
+                      formatter={(value: number) => [`${value} min`, 'Meditação']}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="minutes"
+                      stroke={chartColors.stroke}
+                      strokeWidth={2}
+                      fill="url(#chartGradient)"
+                    />
+                  </AreaChart>
+                ) : (
+                  <BarChart data={chartData}>
+                    <XAxis 
+                      dataKey="day" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: chartPeriod === 'month' ? 10 : 12 }}
+                      interval={chartPeriod === 'month' ? 4 : 0}
+                    />
+                    <YAxis 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                      width={30}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                      }}
+                      labelStyle={{ color: 'hsl(var(--foreground))' }}
+                      formatter={(value: number) => [`${value} min`, 'Meditação']}
+                    />
+                    <Bar
+                      dataKey="minutes"
+                      fill={chartColors.stroke}
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                )}
               </ResponsiveContainer>
             ) : (
               <div className="h-full flex items-center justify-center">
                 <p className="text-sm text-muted-foreground text-center">
-                  Nenhuma sessão registrada nesta semana ainda
+                  {chartPeriod === 'week' ? 'Nenhuma sessão nesta semana' :
+                   chartPeriod === 'month' ? 'Nenhuma sessão este mês' : 'Nenhuma sessão este ano'}
                 </p>
               </div>
             )}
