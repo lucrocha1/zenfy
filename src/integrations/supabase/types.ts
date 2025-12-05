@@ -14,7 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      meditation_sessions: {
+        Row: {
+          created_at: string
+          date: string
+          device_id: string
+          duration_seconds: number
+          ended_at: string
+          id: string
+          started_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          device_id: string
+          duration_seconds: number
+          ended_at: string
+          id?: string
+          started_at: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          device_id?: string
+          duration_seconds?: number
+          ended_at?: string
+          id?: string
+          started_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
