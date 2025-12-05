@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
 import { getTotalDuration } from '@/utils/meditationStats';
 import {
@@ -10,16 +12,46 @@ import {
   BADGES,
   LEVELS,
 } from '@/utils/gamification';
-import { Trophy, Star, Check, Lock } from 'lucide-react';
+import { Trophy, Star, Check, Lock, Share2 } from 'lucide-react';
+import { ShareModal } from './ShareModal';
 
 export const BadgesLevels = () => {
   const { sessions } = useMeditationSessions();
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   
   const totalMinutes = Math.round(getTotalDuration(sessions) / 60);
   const maxStreak = calculateMaxStreak(sessions);
   const currentLevel = getCurrentLevel(totalMinutes);
   const nextLevel = getNextLevel(currentLevel.level);
   const { percent, remaining } = getLevelProgress(totalMinutes);
+
+  const levelName = `Nível ${currentLevel.level} – ${currentLevel.name}`;
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/share`;
+    const shareText = `Tô usando o Zenfy pra criar o hábito de meditar 😌\nJá estou no ${levelName} e acumulando conquistas.\nDá uma olhada no meu progresso e vê se tu aguenta me acompanhar:\n👉 ${shareUrl}`;
+
+    // Try Web Share API first
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Meu progresso de meditação no Zenfy',
+          text: shareText,
+          url: shareUrl,
+        });
+        return;
+      } catch (err) {
+        // User cancelled or error - fall through to modal
+        if ((err as Error).name !== 'AbortError') {
+          setShareModalOpen(true);
+        }
+        return;
+      }
+    }
+
+    // Fallback to modal
+    setShareModalOpen(true);
+  };
 
   // Sort badges: unlocked first, then by proximity to being unlocked
   const sortedBadges = [...BADGES].sort((a, b) => {
@@ -46,9 +78,20 @@ export const BadgesLevels = () => {
   return (
     <div className="min-h-[70vh] px-4 py-8">
       <div className="max-w-2xl mx-auto space-y-6">
-        <h2 className="text-2xl font-light text-center text-foreground mb-8">
-          Badges & Níveis
-        </h2>
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-light text-foreground">
+            Badges & Níveis
+          </h2>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleShare}
+            className="gap-2"
+          >
+            <Share2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Compartilhar</span>
+          </Button>
+        </div>
 
         {/* Level Card */}
         <Card className="p-6">
@@ -180,6 +223,12 @@ export const BadgesLevels = () => {
           </div>
         </Card>
       </div>
+
+      <ShareModal
+        open={shareModalOpen}
+        onOpenChange={setShareModalOpen}
+        levelName={levelName}
+      />
     </div>
   );
 };
