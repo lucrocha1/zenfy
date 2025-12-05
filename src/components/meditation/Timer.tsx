@@ -108,14 +108,6 @@ export const Timer = () => {
             <div className="flex flex-col items-center gap-2 pt-2 border-t border-border">
               <span className="text-xs text-muted-foreground">Tempo personalizado</span>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setCustomMinutes(prev => String(Math.max(1, (parseInt(prev) || 10) - 5)))}
-                >
-                  -
-                </Button>
                 <Input
                   type="number"
                   value={customMinutes}
@@ -126,14 +118,6 @@ export const Timer = () => {
                   placeholder="10"
                 />
                 <span className="text-sm text-muted-foreground">min</span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setCustomMinutes(prev => String(Math.min(180, (parseInt(prev) || 10) + 5)))}
-                >
-                  +
-                </Button>
                 <Button variant="secondary" size="sm" onClick={handleCustomTime}>
                   Aplicar
                 </Button>
