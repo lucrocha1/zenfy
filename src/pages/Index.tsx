@@ -6,13 +6,15 @@ import { Reminders } from '@/components/meditation/Reminders';
 import { CelebrationModal } from '@/components/meditation/CelebrationModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Timer as TimerIcon, TrendingUp, Trophy, Calendar, Bell, LogOut } from 'lucide-react';
+import { Timer as TimerIcon, TrendingUp, Trophy, Calendar, Bell, LogOut, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
 import { useAchievementCelebration } from '@/hooks/useAchievementCelebration';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 
 const Index = () => {
+  const navigate = useNavigate();
   const { sessions } = useMeditationSessions();
   const { celebration, dismissCelebration } = useAchievementCelebration(sessions);
   const { signOut } = useAuth();
@@ -70,6 +72,14 @@ const Index = () => {
             </TabsList>
             <div className="flex items-center gap-1">
               <ThemeToggle />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/perfil')}
+                title="Perfil e Configurações"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
               <Button
                 variant="ghost"
                 size="icon"
