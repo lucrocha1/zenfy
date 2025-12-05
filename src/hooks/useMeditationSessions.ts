@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { MeditationSession } from '@/types/meditation';
-import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/integrations/supabase/types';
 
 const DEVICE_ID_KEY = 'meditation_device_id';
 const LEGACY_STORAGE_KEY = 'meditation_sessions';
@@ -14,14 +15,32 @@ const getOrCreateDeviceId = (): string => {
   return deviceId;
 };
 
+// Create a Supabase client with device_id header for RLS validation
+const createDeviceClient = (deviceId: string) => {
+  return createClient<Database>(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    {
+      global: {
+        headers: {
+          'x-device-id': deviceId,
+        },
+      },
+    }
+  );
+};
+
 export const useMeditationSessions = () => {
   const [sessions, setSessions] = useState<MeditationSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const deviceId = getOrCreateDeviceId();
+  
+  // Memoize the client to avoid recreating on each render
+  const supabaseClient = useMemo(() => createDeviceClient(deviceId), [deviceId]);
 
   // Fetch sessions from database
   const fetchSessions = useCallback(async () => {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('meditation_sessions')
       .select('*')
       .eq('device_id', deviceId)
@@ -42,7 +61,7 @@ export const useMeditationSessions = () => {
 
     setSessions(formattedSessions);
     setIsLoading(false);
-  }, [deviceId]);
+  }, [supabaseClient, deviceId]);
 
   // Migrate legacy localStorage data to cloud
   const migrateLegacyData = useCallback(async () => {
@@ -62,7 +81,7 @@ export const useMeditationSessions = () => {
         date: s.date,
       }));
 
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from('meditation_sessions')
         .insert(sessionsToInsert);
 
@@ -74,7 +93,7 @@ export const useMeditationSessions = () => {
     } catch (e) {
       console.error('Error migrating legacy data:', e);
     }
-  }, [deviceId]);
+  }, [supabaseClient, deviceId]);
 
   useEffect(() => {
     const init = async () => {
@@ -85,7 +104,7 @@ export const useMeditationSessions = () => {
   }, [migrateLegacyData, fetchSessions]);
 
   const saveSession = useCallback(async (session: Omit<MeditationSession, 'id'>) => {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('meditation_sessions')
       .insert({
         device_id: deviceId,
@@ -112,7 +131,7 @@ export const useMeditationSessions = () => {
       };
       setSessions(prev => [newSession, ...prev]);
     }
-  }, [deviceId]);
+  }, [supabaseClient, deviceId]);
 
   return { sessions, saveSession, isLoading };
 };
