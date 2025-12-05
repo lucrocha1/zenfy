@@ -245,14 +245,14 @@ export const Performance = () => {
               <Slider
                 value={[tempGoal]}
                 onValueChange={(value) => setTempGoal(value[0])}
-                min={5}
-                max={60}
-                step={5}
+                min={1}
+                max={120}
+                step={1}
                 className="w-full"
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>5 min</span>
-                <span>60 min</span>
+                <span>1 min</span>
+                <span>120 min</span>
               </div>
               <Button onClick={handleSaveGoal} className="w-full">
                 Salvar
