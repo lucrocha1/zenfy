@@ -47,6 +47,75 @@ export type Database = {
         }
         Relationships: []
       }
+      streak_freezes: {
+        Row: {
+          created_at: string
+          freeze_date: string
+          id: string
+          reason: string | null
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          freeze_date: string
+          id?: string
+          reason?: string | null
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          freeze_date?: string
+          id?: string
+          reason?: string | null
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_challenges: {
+        Row: {
+          challenge_type: Database["public"]["Enums"]["challenge_type"]
+          created_at: string
+          end_date: string
+          id: string
+          name: string
+          progress_days: number
+          start_date: string
+          status: Database["public"]["Enums"]["challenge_status"]
+          target_days: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          challenge_type: Database["public"]["Enums"]["challenge_type"]
+          created_at?: string
+          end_date: string
+          id?: string
+          name: string
+          progress_days?: number
+          start_date: string
+          status?: Database["public"]["Enums"]["challenge_status"]
+          target_days: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          challenge_type?: Database["public"]["Enums"]["challenge_type"]
+          created_at?: string
+          end_date?: string
+          id?: string
+          name?: string
+          progress_days?: number
+          start_date?: string
+          status?: Database["public"]["Enums"]["challenge_status"]
+          target_days?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -55,7 +124,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      challenge_status: "active" | "completed" | "failed" | "abandoned"
+      challenge_type: "cave_mode" | "reset" | "custom"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -182,6 +252,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      challenge_status: ["active", "completed", "failed", "abandoned"],
+      challenge_type: ["cave_mode", "reset", "custom"],
+    },
   },
 } as const
