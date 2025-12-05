@@ -175,42 +175,45 @@ export const Performance = () => {
               </div>
             </div>
             
-            {/* Weekday Icons with connecting line */}
-            <div className="relative mt-3 bg-white/10 rounded-xl py-3 px-3 sm:px-4">
-              {/* Connecting line */}
-              <div className="absolute top-1/2 left-6 right-6 sm:left-8 sm:right-8 h-0.5 bg-white/20 -translate-y-3 sm:-translate-y-2.5" />
-              
-              <div className="relative flex justify-between items-center">
+            {/* Weekday Icons with connecting lines between circles */}
+            <div className="mt-3 bg-white/10 rounded-xl py-3 px-3 sm:px-4">
+              <div className="flex justify-between items-center">
                 {weekDays.map((day, index) => (
-                  <div key={index} className="flex flex-col items-center gap-1.5 z-10">
-                    <div 
-                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all ${
-                        day.hasSession 
-                          ? `${flameStyles.checkBg}` 
-                          : day.isMissed
-                            ? 'bg-sky-400/30 border border-sky-300/50'
-                            : day.isToday 
-                              ? 'bg-white/30 ring-2 ring-white/60' 
-                              : 'bg-white/15 border border-white/20'
-                      }`}
-                    >
-                      {day.hasSession ? (
-                        <Check className={`w-4 h-4 sm:w-5 sm:h-5 ${flameStyles.checkIcon}`} strokeWidth={2.5} />
-                      ) : day.isMissed ? (
-                        <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-sky-300" />
-                      ) : day.isToday ? (
-                        <Flame className={`w-4 h-4 sm:w-5 sm:h-5 ${streak > 0 ? flameStyles.textColor : 'text-white/50'}`} />
-                      ) : null}
+                  <div key={index} className="flex items-center">
+                    <div className="flex flex-col items-center gap-1.5">
+                      <div 
+                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all ${
+                          day.hasSession 
+                            ? `${flameStyles.checkBg}` 
+                            : day.isMissed
+                              ? 'bg-sky-400/30 border border-sky-300/50'
+                              : day.isToday 
+                                ? 'bg-white/30 ring-2 ring-white/60' 
+                                : 'bg-white/15 border border-white/20'
+                        }`}
+                      >
+                        {day.hasSession ? (
+                          <Check className={`w-4 h-4 sm:w-5 sm:h-5 ${flameStyles.checkIcon}`} strokeWidth={2.5} />
+                        ) : day.isMissed ? (
+                          <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-sky-300" />
+                        ) : day.isToday ? (
+                          <Flame className={`w-4 h-4 sm:w-5 sm:h-5 ${streak > 0 ? flameStyles.textColor : 'text-white/50'}`} />
+                        ) : null}
+                      </div>
+                      <span className={`text-[10px] sm:text-[11px] capitalize ${
+                        day.isToday 
+                          ? flameStyles.textColor + ' font-bold' 
+                          : day.isMissed 
+                            ? 'text-sky-300' 
+                            : flameStyles.subtitleColor
+                      }`}>
+                        {day.label}
+                      </span>
                     </div>
-                    <span className={`text-[10px] sm:text-[11px] capitalize ${
-                      day.isToday 
-                        ? flameStyles.textColor + ' font-bold' 
-                        : day.isMissed 
-                          ? 'text-sky-300' 
-                          : flameStyles.subtitleColor
-                    }`}>
-                      {day.label}
-                    </span>
+                    {/* Line segment between circles */}
+                    {index < weekDays.length - 1 && (
+                      <div className="flex-1 h-0.5 bg-white/20 mx-1 sm:mx-2 -mt-5" />
+                    )}
                   </div>
                 ))}
               </div>
