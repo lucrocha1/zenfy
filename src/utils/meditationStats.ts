@@ -85,6 +85,8 @@ export const calculateStreak = (sessions: MeditationSession[]): number => {
   return streak;
 };
 
+const dayNamesPt = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
 export const getWeeklyChartData = (sessions: MeditationSession[]) => {
   const now = new Date();
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });
@@ -98,7 +100,7 @@ export const getWeeklyChartData = (sessions: MeditationSession[]) => {
     const totalMinutes = Math.round(getTotalDuration(daySessions) / 60);
     
     return {
-      day: format(day, 'EEE'),
+      day: dayNamesPt[day.getDay()],
       date: dayStr,
       minutes: totalMinutes,
     };
