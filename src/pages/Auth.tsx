@@ -8,14 +8,21 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
 import logo from '@/assets/logo.png';
+import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 
 const authSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
 });
 
+const emailSchema = z.object({
+  email: z.string().email('Email inválido'),
+});
+
+type AuthView = 'login' | 'signup' | 'forgot-password' | 'signup-success' | 'reset-sent';
+
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [view, setView] = useState<AuthView>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,8 +38,11 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
-  const validateForm = () => {
-    const result = authSchema.safeParse({ email, password });
+  const validateForm = (emailOnly = false) => {
+    const schema = emailOnly ? emailSchema : authSchema;
+    const data = emailOnly ? { email } : { email, password };
+    const result = schema.safeParse(data);
+    
     if (!result.success) {
       const fieldErrors: { email?: string; password?: string } = {};
       result.error.errors.forEach((err) => {
@@ -53,6 +63,7 @@ const Auth = () => {
     
     setIsSubmitting(true);
 
+    const isLogin = view === 'login';
     const { error } = isLogin 
       ? await signIn(email, password)
       : await signUp(email, password);
@@ -76,12 +87,33 @@ const Auth = () => {
     }
 
     if (!isLogin) {
-      toast({
-        title: 'Conta criada!',
-        description: 'Você já pode fazer login.',
-      });
-      setIsLogin(true);
+      setView('signup-success');
     }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm(true)) return;
+    
+    setIsSubmitting(true);
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+    
+    setIsSubmitting(false);
+    
+    if (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível enviar o email de recuperação',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setView('reset-sent');
   };
 
   const handleGoogleSignIn = async () => {
@@ -101,6 +133,13 @@ const Auth = () => {
     }
   };
 
+  const resetToLogin = () => {
+    setView('login');
+    setEmail('');
+    setPassword('');
+    setErrors({});
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -108,6 +147,110 @@ const Auth = () => {
       </div>
     );
   }
+
+  // Success screens
+  if (view === 'signup-success') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-8 h-8 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Conta criada!</CardTitle>
+            <CardDescription className="text-base">
+              Enviamos um email de confirmação para <strong className="text-foreground">{email}</strong>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground space-y-2">
+              <p>📬 Verifique sua caixa de entrada</p>
+              <p>📁 Se não encontrar, confira a pasta de spam</p>
+              <p>✨ Clique no link para ativar sua conta</p>
+            </div>
+            <Button onClick={resetToLogin} className="w-full">
+              Voltar para o login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (view === 'reset-sent') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+              <Mail className="w-8 h-8 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Email enviado!</CardTitle>
+            <CardDescription className="text-base">
+              Enviamos instruções de recuperação para <strong className="text-foreground">{email}</strong>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground space-y-2">
+              <p>📬 Verifique sua caixa de entrada</p>
+              <p>📁 Se não encontrar, confira a pasta de spam</p>
+              <p>🔗 Clique no link para redefinir sua senha</p>
+            </div>
+            <Button onClick={resetToLogin} className="w-full">
+              Voltar para o login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Forgot password screen
+  if (view === 'forgot-password') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <img src={logo} alt="Zenfy" className="w-20 h-20 mx-auto mb-2 dark:invert" />
+            <CardTitle className="text-2xl">Recuperar senha</CardTitle>
+            <CardDescription>
+              Digite seu email para receber as instruções
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isSubmitting}
+                />
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email}</p>
+                )}
+              </div>
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Enviando...' : 'Enviar instruções'}
+              </Button>
+            </form>
+            
+            <button
+              type="button"
+              onClick={() => setView('login')}
+              className="flex items-center justify-center gap-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar para o login
+            </button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const isLogin = view === 'login';
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -181,6 +324,17 @@ const Auth = () => {
                 <p className="text-sm text-destructive">{errors.password}</p>
               )}
             </div>
+            
+            {isLogin && (
+              <button
+                type="button"
+                onClick={() => setView('forgot-password')}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                Esqueci minha senha
+              </button>
+            )}
+            
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? 'Aguarde...' : isLogin ? 'Entrar' : 'Criar conta'}
             </Button>
@@ -189,7 +343,7 @@ const Auth = () => {
           <div className="text-center">
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => setView(isLogin ? 'signup' : 'login')}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               {isLogin ? 'Não tem conta? Criar conta' : 'Já tem conta? Entrar'}
