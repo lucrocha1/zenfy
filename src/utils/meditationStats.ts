@@ -65,6 +65,11 @@ export const getTotalDuration = (sessions: MeditationSession[]): number => {
   return sessions.reduce((total, session) => total + session.duration_seconds, 0);
 };
 
+export const getTodaySessions = (sessions: MeditationSession[]): MeditationSession[] => {
+  const today = format(new Date(), 'yyyy-MM-dd');
+  return sessions.filter(s => s.date === today);
+};
+
 export const calculateStreak = (sessions: MeditationSession[]): number => {
   if (sessions.length === 0) return 0;
   

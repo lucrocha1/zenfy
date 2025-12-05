@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTimer } from '@/hooks/useTimer';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
-import { formatTime } from '@/utils/meditationStats';
+import { formatTime, getTodaySessions, getTotalDuration, calculateStreak } from '@/utils/meditationStats';
 import { playSound, getSavedSound, saveSound, SOUND_OPTIONS, SoundType } from '@/utils/sounds';
 import { Play, Pause, RotateCcw, Volume2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -23,7 +23,11 @@ export const Timer = () => {
   const [customMinutes, setCustomMinutes] = useState('');
   const [selectedSound, setSelectedSound] = useState<SoundType>('bell');
   const [quote] = useState(() => MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)]);
-  const { saveSession } = useMeditationSessions();
+  const { sessions, saveSession } = useMeditationSessions();
+  
+  const todaySessions = getTodaySessions(sessions);
+  const todayMinutes = Math.round(getTotalDuration(todaySessions) / 60);
+  const streak = calculateStreak(sessions);
 
   useEffect(() => {
     setSelectedSound(getSavedSound());
@@ -183,8 +187,13 @@ export const Timer = () => {
         </div>
       </Card>
 
+      {/* Today's Quick Stats */}
+      <p className="mt-4 text-sm text-muted-foreground text-center">
+        Hoje: {todayMinutes} min · {todaySessions.length} {todaySessions.length === 1 ? 'sessão' : 'sessões'} · sequência {streak} {streak >= 1 && '🔥'}
+      </p>
+
       {/* Motivational Quote */}
-      <p className="mt-6 text-sm text-muted-foreground text-center max-w-sm px-4 italic">
+      <p className="mt-2 text-sm text-muted-foreground/70 text-center max-w-sm px-4 italic">
         "{quote}"
       </p>
     </div>
