@@ -1,21 +1,42 @@
-export type SoundType = 'bell' | 'gong' | 'nature' | 'silent';
+export type SoundType = 'bell' | 'gong' | 'nature';
+
+export type AmbientSoundType = 'silent' | 'rain' | 'ocean' | 'tibetan' | 'zen' | 'pink-noise';
 
 export const SOUND_OPTIONS: { value: SoundType; label: string }[] = [
   { value: 'bell', label: 'Sino' },
   { value: 'gong', label: 'Gongo' },
   { value: 'nature', label: 'Natureza' },
+];
+
+export const AMBIENT_SOUND_OPTIONS: { value: AmbientSoundType; label: string }[] = [
   { value: 'silent', label: 'Silêncio' },
+  { value: 'rain', label: 'Chuva Suave' },
+  { value: 'ocean', label: 'Ondas do Mar' },
+  { value: 'tibetan', label: 'Tigelas Tibetanas' },
+  { value: 'zen', label: 'Ambiente Zen' },
+  { value: 'pink-noise', label: 'Ruído Rosa' },
 ];
 
 const SOUND_STORAGE_KEY = 'meditation_sound';
+const AMBIENT_SOUND_STORAGE_KEY = 'meditation_ambient_sound';
 
 export const getSavedSound = (): SoundType => {
   const saved = localStorage.getItem(SOUND_STORAGE_KEY);
+  if (saved === 'silent') return 'bell'; // Migrate old "silent" to "bell"
   return (saved as SoundType) || 'bell';
 };
 
 export const saveSound = (sound: SoundType) => {
   localStorage.setItem(SOUND_STORAGE_KEY, sound);
+};
+
+export const getSavedAmbientSound = (): AmbientSoundType => {
+  const saved = localStorage.getItem(AMBIENT_SOUND_STORAGE_KEY);
+  return (saved as AmbientSoundType) || 'silent';
+};
+
+export const saveAmbientSound = (sound: AmbientSoundType) => {
+  localStorage.setItem(AMBIENT_SOUND_STORAGE_KEY, sound);
 };
 
 // Bell sound - high frequency, clean tone
@@ -90,8 +111,6 @@ const playNatureSound = (audioContext: AudioContext) => {
 };
 
 export const playSound = (type: SoundType) => {
-  if (type === 'silent') return;
-  
   const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
   
   switch (type) {
@@ -106,3 +125,246 @@ export const playSound = (type: SoundType) => {
       break;
   }
 };
+
+// ============= AMBIENT SOUNDS =============
+
+class AmbientSoundPlayer {
+  private audioContext: AudioContext | null = null;
+  private gainNode: GainNode | null = null;
+  private sourceNodes: AudioBufferSourceNode[] = [];
+  private oscillators: OscillatorNode[] = [];
+  private isPlaying = false;
+  private currentType: AmbientSoundType = 'silent';
+
+  start(type: AmbientSoundType) {
+    if (type === 'silent') return;
+    
+    this.stop();
+    this.currentType = type;
+    this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    this.gainNode = this.audioContext.createGain();
+    this.gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+    this.gainNode.connect(this.audioContext.destination);
+    this.isPlaying = true;
+
+    switch (type) {
+      case 'rain':
+        this.playRain();
+        break;
+      case 'ocean':
+        this.playOcean();
+        break;
+      case 'tibetan':
+        this.playTibetan();
+        break;
+      case 'zen':
+        this.playZen();
+        break;
+      case 'pink-noise':
+        this.playPinkNoise();
+        break;
+    }
+  }
+
+  stop() {
+    this.isPlaying = false;
+    this.sourceNodes.forEach(node => {
+      try { node.stop(); } catch {}
+    });
+    this.oscillators.forEach(osc => {
+      try { osc.stop(); } catch {}
+    });
+    this.sourceNodes = [];
+    this.oscillators = [];
+    if (this.audioContext) {
+      this.audioContext.close();
+      this.audioContext = null;
+    }
+  }
+
+  private createNoiseBuffer(duration: number): AudioBuffer {
+    const bufferSize = this.audioContext!.sampleRate * duration;
+    const buffer = this.audioContext!.createBuffer(1, bufferSize, this.audioContext!.sampleRate);
+    const output = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1;
+    }
+    return buffer;
+  }
+
+  private loopNoise(filterType: BiquadFilterType, filterFreq: number, volume: number) {
+    if (!this.isPlaying || !this.audioContext || !this.gainNode) return;
+
+    const buffer = this.createNoiseBuffer(4);
+    const source = this.audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+
+    const filter = this.audioContext.createBiquadFilter();
+    filter.type = filterType;
+    filter.frequency.setValueAtTime(filterFreq, this.audioContext.currentTime);
+
+    const localGain = this.audioContext.createGain();
+    localGain.gain.setValueAtTime(volume, this.audioContext.currentTime);
+
+    source.connect(filter);
+    filter.connect(localGain);
+    localGain.connect(this.gainNode);
+    source.start();
+    this.sourceNodes.push(source);
+  }
+
+  private playRain() {
+    // Multiple layers of filtered noise for realistic rain
+    this.loopNoise('lowpass', 1000, 0.4);
+    this.loopNoise('bandpass', 3000, 0.2);
+    this.loopNoise('highpass', 5000, 0.1);
+  }
+
+  private playOcean() {
+    if (!this.audioContext || !this.gainNode) return;
+
+    // Base ocean rumble
+    this.loopNoise('lowpass', 300, 0.3);
+
+    // Sweeping waves effect using LFO
+    const buffer = this.createNoiseBuffer(8);
+    const source = this.audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+
+    const filter = this.audioContext.createBiquadFilter();
+    filter.type = 'lowpass';
+    
+    const lfo = this.audioContext.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(0.1, this.audioContext.currentTime);
+    
+    const lfoGain = this.audioContext.createGain();
+    lfoGain.gain.setValueAtTime(400, this.audioContext.currentTime);
+    
+    lfo.connect(lfoGain);
+    lfoGain.connect(filter.frequency);
+    filter.frequency.setValueAtTime(600, this.audioContext.currentTime);
+
+    const localGain = this.audioContext.createGain();
+    localGain.gain.setValueAtTime(0.35, this.audioContext.currentTime);
+
+    source.connect(filter);
+    filter.connect(localGain);
+    localGain.connect(this.gainNode);
+    
+    source.start();
+    lfo.start();
+    this.sourceNodes.push(source);
+    this.oscillators.push(lfo);
+  }
+
+  private playTibetan() {
+    if (!this.audioContext || !this.gainNode) return;
+
+    // Tibetan singing bowl frequencies with harmonics
+    const playBowl = (baseFreq: number, delay: number) => {
+      if (!this.audioContext || !this.gainNode) return;
+
+      const harmonics = [1, 2, 2.5, 3, 4];
+      harmonics.forEach((mult, i) => {
+        const osc = this.audioContext!.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(baseFreq * mult, this.audioContext!.currentTime);
+
+        const oscGain = this.audioContext!.createGain();
+        const volume = 0.15 / (i + 1);
+        oscGain.gain.setValueAtTime(0, this.audioContext!.currentTime);
+        oscGain.gain.linearRampToValueAtTime(volume, this.audioContext!.currentTime + delay + 0.5);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, this.audioContext!.currentTime + delay + 8);
+
+        osc.connect(oscGain);
+        oscGain.connect(this.gainNode!);
+        osc.start(this.audioContext!.currentTime + delay);
+        osc.stop(this.audioContext!.currentTime + delay + 8);
+        this.oscillators.push(osc);
+      });
+    };
+
+    // Play bowls in sequence, then loop
+    const sequence = () => {
+      if (!this.isPlaying) return;
+      playBowl(220, 0);    // A3
+      playBowl(261, 3);    // C4
+      playBowl(329, 6);    // E4
+      setTimeout(() => sequence(), 10000);
+    };
+    sequence();
+  }
+
+  private playZen() {
+    if (!this.audioContext || !this.gainNode) return;
+
+    // Soft pad-like ambient drone
+    const frequencies = [110, 165, 220, 330];
+    frequencies.forEach((freq) => {
+      const osc = this.audioContext!.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, this.audioContext!.currentTime);
+
+      const oscGain = this.audioContext!.createGain();
+      oscGain.gain.setValueAtTime(0.08, this.audioContext!.currentTime);
+
+      // Subtle vibrato
+      const lfo = this.audioContext!.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.setValueAtTime(0.2 + Math.random() * 0.1, this.audioContext!.currentTime);
+      const lfoGain = this.audioContext!.createGain();
+      lfoGain.gain.setValueAtTime(2, this.audioContext!.currentTime);
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+
+      osc.connect(oscGain);
+      oscGain.connect(this.gainNode!);
+      osc.start();
+      lfo.start();
+      this.oscillators.push(osc, lfo);
+    });
+
+    // Add subtle nature texture
+    this.loopNoise('lowpass', 400, 0.05);
+  }
+
+  private playPinkNoise() {
+    if (!this.audioContext || !this.gainNode) return;
+
+    // Pink noise has equal energy per octave (more bass than white noise)
+    const bufferSize = this.audioContext.sampleRate * 4;
+    const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
+    const output = buffer.getChannelData(0);
+
+    // Pink noise generation using Voss-McCartney algorithm approximation
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + white * 0.0555179;
+      b1 = 0.99332 * b1 + white * 0.0750759;
+      b2 = 0.96900 * b2 + white * 0.1538520;
+      b3 = 0.86650 * b3 + white * 0.3104856;
+      b4 = 0.55000 * b4 + white * 0.5329522;
+      b5 = -0.7616 * b5 - white * 0.0168980;
+      output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+      b6 = white * 0.115926;
+    }
+
+    const source = this.audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+
+    const localGain = this.audioContext.createGain();
+    localGain.gain.setValueAtTime(0.4, this.audioContext.currentTime);
+
+    source.connect(localGain);
+    localGain.connect(this.gainNode);
+    source.start();
+    this.sourceNodes.push(source);
+  }
+}
+
+export const ambientPlayer = new AmbientSoundPlayer();
