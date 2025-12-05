@@ -7,14 +7,22 @@ import { useTimer } from '@/hooks/useTimer';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
 import { formatTime } from '@/utils/meditationStats';
 import { playSound, getSavedSound, saveSound, SOUND_OPTIONS, SoundType } from '@/utils/sounds';
-import { Play, Pause, RotateCcw, Check, Volume2 } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const QUICK_TIMES = [5, 10, 15, 20];
 
+const MOTIVATIONAL_QUOTES = [
+  "Comece pequeno. 5 minutos hoje já valem mais do que 0 minutos.",
+  "Cada respiração é uma oportunidade de recomeçar.",
+  "A paz interior começa com um momento de silêncio.",
+  "Meditar é se encontrar no presente.",
+];
+
 export const Timer = () => {
   const [customMinutes, setCustomMinutes] = useState('');
   const [selectedSound, setSelectedSound] = useState<SoundType>('bell');
+  const [quote] = useState(() => MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)]);
   const { saveSession } = useMeditationSessions();
 
   useEffect(() => {
@@ -24,7 +32,7 @@ export const Timer = () => {
   const handleSoundChange = (value: SoundType) => {
     setSelectedSound(value);
     saveSound(value);
-    playSound(value); // Preview sound
+    playSound(value);
   };
   
   const handleComplete = useCallback(() => {
@@ -52,21 +60,10 @@ export const Timer = () => {
       setCustomMinutes('');
     }
   };
-  
-  const handleEndEarly = () => {
-    const elapsed = timer.getElapsedSeconds();
-    if (elapsed > 0 && timer.startedAt) {
-      playSound(selectedSound);
-      const now = new Date();
-      saveSession({
-        started_at: timer.startedAt.toISOString(),
-        ended_at: now.toISOString(),
-        duration_seconds: elapsed,
-        date: now.toISOString().split('T')[0],
-      });
-      toast.success('Sessão salva! 🧘');
-    }
+
+  const handleCancel = () => {
     timer.reset();
+    toast.info('Sessão cancelada');
   };
   
   const isTimerSet = timer.totalSeconds > 0;
@@ -75,12 +72,14 @@ export const Timer = () => {
   const isIdle = timer.status === 'idle';
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
-      <Card className="w-full max-w-md p-8 space-y-8">
-        <h2 className="text-2xl font-light text-center text-foreground">Meditar</h2>
+    <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 py-8">
+      <Card className="w-full max-w-md p-8 space-y-6">
+        <h2 className="text-xl font-medium text-center text-foreground">
+          Meditação de hoje
+        </h2>
         
         {/* Timer Display */}
-        <div className="text-center">
+        <div className="text-center py-6">
           <div className={`text-7xl font-extralight tracking-wider transition-colors ${
             isRunning ? 'text-primary' : 'text-foreground'
           }`}>
@@ -98,6 +97,7 @@ export const Timer = () => {
                   variant={timer.totalSeconds === minutes * 60 ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => handleQuickTime(minutes)}
+                  className="min-w-[4rem]"
                 >
                   {minutes} min
                 </Button>
@@ -114,6 +114,7 @@ export const Timer = () => {
                 className="w-24 text-center"
                 min={1}
                 max={180}
+                onKeyDown={(e) => e.key === 'Enter' && handleCustomTime()}
               />
               <Button variant="outline" size="sm" onClick={handleCustomTime}>
                 Definir
@@ -140,9 +141,9 @@ export const Timer = () => {
         )}
         
         {/* Control Buttons */}
-        <div className="flex justify-center gap-3">
+        <div className="flex flex-col gap-3">
           {isIdle && isTimerSet && (
-            <Button size="lg" onClick={timer.start} className="gap-2">
+            <Button size="lg" onClick={timer.start} className="w-full gap-2">
               <Play className="w-5 h-5" />
               Iniciar
             </Button>
@@ -150,35 +151,36 @@ export const Timer = () => {
           
           {isRunning && (
             <>
-              <Button size="lg" variant="outline" onClick={timer.pause} className="gap-2">
+              <Button size="lg" onClick={timer.pause} className="w-full gap-2">
                 <Pause className="w-5 h-5" />
                 Pausar
               </Button>
-              <Button size="lg" variant="secondary" onClick={handleEndEarly} className="gap-2">
-                <Check className="w-5 h-5" />
-                Encerrar
+              <Button size="lg" variant="outline" onClick={handleCancel} className="w-full gap-2">
+                <RotateCcw className="w-5 h-5" />
+                Cancelar
               </Button>
             </>
           )}
           
           {isPaused && (
             <>
-              <Button size="lg" onClick={timer.resume} className="gap-2">
+              <Button size="lg" onClick={timer.resume} className="w-full gap-2">
                 <Play className="w-5 h-5" />
                 Retomar
               </Button>
-              <Button size="lg" variant="outline" onClick={timer.reset} className="gap-2">
+              <Button size="lg" variant="outline" onClick={handleCancel} className="w-full gap-2">
                 <RotateCcw className="w-5 h-5" />
                 Cancelar
-              </Button>
-              <Button size="lg" variant="secondary" onClick={handleEndEarly} className="gap-2">
-                <Check className="w-5 h-5" />
-                Encerrar
               </Button>
             </>
           )}
         </div>
       </Card>
+
+      {/* Motivational Quote */}
+      <p className="mt-6 text-sm text-muted-foreground text-center max-w-sm px-4 italic">
+        "{quote}"
+      </p>
     </div>
   );
 };
