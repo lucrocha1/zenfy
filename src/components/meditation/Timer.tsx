@@ -1,11 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTimer } from '@/hooks/useTimer';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
-import { formatTime, getTodaySessions, getTotalDuration, calculateStreak } from '@/utils/meditationStats';
+import { formatTime, getTodaySessions, getTotalDuration, calculateStreak, getDailyGoal } from '@/utils/meditationStats';
 import { 
   playSound, 
   getSavedSound, 
@@ -20,6 +20,7 @@ import {
 } from '@/utils/sounds';
 import { SessionCompleteModal } from './SessionCompleteModal';
 import { Play, Pause, RotateCcw, Volume2, Music, Infinity, Square } from 'lucide-react';
+import { toast } from 'sonner';
 
 const QUICK_TIMES = [5, 10, 15, 20];
 
@@ -38,11 +39,14 @@ export const Timer = () => {
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [completedDuration, setCompletedDuration] = useState(0);
   const [isFreeMode, setIsFreeMode] = useState(false);
+  const [goalReachedDuringSession, setGoalReachedDuringSession] = useState(false);
+  const goalNotifiedRef = useRef(false);
   const { sessions, saveSession } = useMeditationSessions();
   
   const todaySessions = getTodaySessions(sessions);
   const todayMinutes = Math.round(getTotalDuration(todaySessions) / 60);
   const streak = calculateStreak(sessions);
+  const dailyGoal = getDailyGoal();
 
   useEffect(() => {
     setSelectedSound(getSavedSound());
@@ -76,6 +80,31 @@ export const Timer = () => {
   }, [selectedSound, saveSession]);
   
   const timer = useTimer(handleComplete);
+
+  // Check if daily goal is reached during free mode
+  useEffect(() => {
+    if (timer.status === 'stopwatch' && !goalNotifiedRef.current) {
+      const currentSessionMinutes = Math.floor(timer.elapsedSeconds / 60);
+      const totalWithSession = todayMinutes + currentSessionMinutes;
+      
+      if (totalWithSession >= dailyGoal && todayMinutes < dailyGoal) {
+        goalNotifiedRef.current = true;
+        setGoalReachedDuringSession(true);
+        toast.success('🎉 Meta diária atingida!', {
+          description: `Você completou ${dailyGoal} minutos de meditação hoje!`,
+          duration: 5000,
+        });
+      }
+    }
+  }, [timer.status, timer.elapsedSeconds, todayMinutes, dailyGoal]);
+
+  // Reset goal notification flag when session ends
+  useEffect(() => {
+    if (timer.status === 'idle') {
+      goalNotifiedRef.current = false;
+      setGoalReachedDuringSession(false);
+    }
+  }, [timer.status]);
 
   // Start/stop ambient sound based on timer state
   useEffect(() => {
@@ -142,6 +171,7 @@ export const Timer = () => {
         onClose={handleCloseCompleteModal}
         sessions={sessions}
         sessionDuration={completedDuration}
+        goalReachedDuringSession={goalReachedDuringSession}
       />
 
       <Card className="w-full max-w-md p-8 space-y-6">

@@ -4,15 +4,16 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { MeditationSession } from '@/types/meditation';
-import { calculateStreak, getTodaySessions, getTotalDuration } from '@/utils/meditationStats';
+import { calculateStreak, getTodaySessions, getTotalDuration, getDailyGoal } from '@/utils/meditationStats';
 import { BADGES, calculateMaxStreak } from '@/utils/gamification';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Target } from 'lucide-react';
 
 interface SessionCompleteModalProps {
   isOpen: boolean;
   onClose: () => void;
   sessions: MeditationSession[];
   sessionDuration: number; // in seconds
+  goalReachedDuringSession?: boolean;
 }
 
 export const SessionCompleteModal = ({
@@ -20,6 +21,7 @@ export const SessionCompleteModal = ({
   onClose,
   sessions,
   sessionDuration,
+  goalReachedDuringSession = false,
 }: SessionCompleteModalProps) => {
   const sessionMinutes = Math.round(sessionDuration / 60);
   const todaySessions = getTodaySessions(sessions);
@@ -27,6 +29,11 @@ export const SessionCompleteModal = ({
   const streak = calculateStreak(sessions);
   const totalMinutes = Math.round(getTotalDuration(sessions) / 60);
   const maxStreak = calculateMaxStreak(sessions);
+  const dailyGoal = getDailyGoal();
+
+  // Check if goal was reached with this session (for timed sessions)
+  const previousTodayMinutes = todayMinutes - sessionMinutes;
+  const goalReachedNow = !goalReachedDuringSession && previousTodayMinutes < dailyGoal && todayMinutes >= dailyGoal;
 
   // Find newly unlocked badges (simplified check - badges that are now unlocked)
   const unlockedBadges = BADGES.filter(b => b.isUnlocked(sessions, totalMinutes, maxStreak));
@@ -56,6 +63,19 @@ export const SessionCompleteModal = ({
               <span className="text-muted-foreground">Total hoje</span>
               <span className="font-medium text-foreground">{todayMinutes} min</span>
             </div>
+            
+            {/* Goal Reached Alert */}
+            {goalReachedNow && (
+              <div className="flex items-center justify-between text-sm px-4 py-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <span className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                  <Target className="w-4 h-4" />
+                  Meta diária atingida!
+                </span>
+                <span className="font-medium text-green-600 dark:text-green-400">
+                  🎉
+                </span>
+              </div>
+            )}
             
             {streak >= 1 && (
               <div className="flex justify-between text-sm px-4 py-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
