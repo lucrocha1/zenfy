@@ -142,16 +142,16 @@ const Auth = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <main className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-pulse text-muted-foreground">Carregando...</div>
-      </div>
+      </main>
     );
   }
 
   // Success screens
   if (view === 'signup-success') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <main className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
@@ -173,13 +173,13 @@ const Auth = () => {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </main>
     );
   }
 
   if (view === 'reset-sent') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <main className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
@@ -201,14 +201,14 @@ const Auth = () => {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </main>
     );
   }
 
   // Forgot password screen
   if (view === 'forgot-password') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <main className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <img src={logo} alt="Zenfy" className="w-20 h-20 mx-auto mb-2 dark:invert" />
@@ -246,14 +246,14 @@ const Auth = () => {
             </button>
           </CardContent>
         </Card>
-      </div>
+      </main>
     );
   }
 
   const isLogin = view === 'login';
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <main className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <img src={logo} alt="Zenfy" className="w-20 h-20 mx-auto mb-2 dark:invert" />
@@ -351,7 +351,7 @@ const Auth = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </main>
   );
 };
 
