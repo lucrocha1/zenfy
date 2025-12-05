@@ -32,35 +32,45 @@ const getChartColors = (streak: number) => {
 
 const getFlameStyles = (streak: number) => {
   if (streak >= 30) {
+    // Purple gradient for 30+ days
     return { 
-      bg: 'bg-purple-100 dark:bg-purple-900/30', 
-      icon: 'text-purple-500', 
+      bg: 'bg-white/20', 
+      icon: 'text-white drop-shadow-lg', 
       animate: 'animate-pulse', 
-      cardGradient: 'bg-gradient-to-r from-purple-400/40 via-purple-300/25 via-80% to-purple-200/10 dark:from-purple-500/50 dark:via-purple-400/30 dark:to-purple-300/15'
+      cardGradient: 'bg-gradient-to-br from-purple-500 via-purple-400 to-violet-500',
+      textColor: 'text-white',
+      subtitleColor: 'text-white/80'
     };
   } else if (streak >= 7) {
+    // Gold gradient for 7-29 days
     return { 
-      bg: 'bg-yellow-100 dark:bg-yellow-900/30', 
-      icon: 'text-yellow-500', 
+      bg: 'bg-white/20', 
+      icon: 'text-white drop-shadow-lg', 
       animate: 'animate-pulse', 
-      cardGradient: 'bg-gradient-to-r from-yellow-400/40 via-yellow-300/25 via-80% to-yellow-200/10 dark:from-yellow-500/50 dark:via-yellow-400/30 dark:to-yellow-300/15'
-    };
-  } else if (streak >= 2) {
-    return { 
-      bg: 'bg-orange-100 dark:bg-orange-900/30', 
-      icon: 'text-orange-500', 
-      animate: 'animate-pulse', 
-      cardGradient: 'bg-gradient-to-r from-orange-400/40 via-orange-300/25 via-80% to-orange-200/10 dark:from-orange-500/50 dark:via-orange-400/30 dark:to-orange-300/15'
+      cardGradient: 'bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-400',
+      textColor: 'text-white',
+      subtitleColor: 'text-white/80'
     };
   } else if (streak >= 1) {
+    // Orange gradient for 1-6 days
     return { 
-      bg: 'bg-orange-50 dark:bg-orange-900/20', 
-      icon: 'text-orange-400', 
-      animate: '', 
-      cardGradient: 'bg-gradient-to-r from-orange-300/35 via-orange-200/20 via-80% to-orange-100/8 dark:from-orange-400/45 dark:via-orange-300/25 dark:to-orange-200/12'
+      bg: 'bg-white/20', 
+      icon: 'text-white drop-shadow-lg', 
+      animate: streak >= 2 ? 'animate-pulse' : '', 
+      cardGradient: 'bg-gradient-to-br from-orange-400 via-orange-500 to-red-500',
+      textColor: 'text-white',
+      subtitleColor: 'text-white/80'
     };
   }
-  return { bg: 'bg-muted', icon: 'text-muted-foreground', animate: '', cardGradient: '' };
+  // No streak - neutral style
+  return { 
+    bg: 'bg-muted', 
+    icon: 'text-muted-foreground', 
+    animate: '', 
+    cardGradient: '',
+    textColor: 'text-foreground',
+    subtitleColor: 'text-muted-foreground'
+  };
 };
 
 const getStreakSubtitle = (streak: number, sessions: any[]) => {
@@ -109,18 +119,18 @@ export const Performance = () => {
               <Flame className={`w-6 h-6 ${flameStyles.icon} ${flameStyles.animate}`} />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground">Sequência de dias</p>
+              <p className={`text-sm ${flameStyles.subtitleColor}`}>Sequência de dias</p>
               {streak > 0 ? (
                 <>
-                  <p className="text-2xl font-semibold text-foreground">
+                  <p className={`text-2xl font-semibold ${flameStyles.textColor}`}>
                     {streak} {streak === 1 ? 'dia' : 'dias'} {streak >= 2 && 'seguidos'} {streak >= 2 && '🔥'}
                   </p>
                   {streakSubtitle && (
-                    <p className="text-sm text-muted-foreground mt-1">{streakSubtitle}</p>
+                    <p className={`text-sm ${flameStyles.subtitleColor} mt-1`}>{streakSubtitle}</p>
                   )}
                 </>
               ) : (
-                <p className="text-muted-foreground">
+                <p className={flameStyles.subtitleColor}>
                   Você ainda não iniciou uma sequência. Que tal começar hoje?
                 </p>
               )}
