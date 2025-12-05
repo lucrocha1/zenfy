@@ -1,41 +1,34 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTimer } from '@/hooks/useTimer';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
 import { formatTime } from '@/utils/meditationStats';
-import { Play, Pause, RotateCcw, Check } from 'lucide-react';
+import { playSound, getSavedSound, saveSound, SOUND_OPTIONS, SoundType } from '@/utils/sounds';
+import { Play, Pause, RotateCcw, Check, Volume2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const QUICK_TIMES = [5, 10, 15, 20];
 
-// Simple bell sound using Web Audio API
-const playBellSound = () => {
-  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-  
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-  
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-  
-  oscillator.frequency.setValueAtTime(528, audioContext.currentTime);
-  oscillator.type = 'sine';
-  
-  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2);
-  
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + 2);
-};
-
 export const Timer = () => {
   const [customMinutes, setCustomMinutes] = useState('');
+  const [selectedSound, setSelectedSound] = useState<SoundType>('bell');
   const { saveSession } = useMeditationSessions();
+
+  useEffect(() => {
+    setSelectedSound(getSavedSound());
+  }, []);
+
+  const handleSoundChange = (value: SoundType) => {
+    setSelectedSound(value);
+    saveSound(value);
+    playSound(value); // Preview sound
+  };
   
   const handleComplete = useCallback(() => {
-    playBellSound();
+    playSound(selectedSound);
     const now = new Date();
     saveSession({
       started_at: new Date(now.getTime() - timer.totalSeconds * 1000).toISOString(),
@@ -44,7 +37,7 @@ export const Timer = () => {
       date: now.toISOString().split('T')[0],
     });
     toast.success('Sessão concluída! 🧘');
-  }, []);
+  }, [selectedSound]);
   
   const timer = useTimer(handleComplete);
   
@@ -63,7 +56,7 @@ export const Timer = () => {
   const handleEndEarly = () => {
     const elapsed = timer.getElapsedSeconds();
     if (elapsed > 0 && timer.startedAt) {
-      playBellSound();
+      playSound(selectedSound);
       const now = new Date();
       saveSession({
         started_at: timer.startedAt.toISOString(),
@@ -125,6 +118,23 @@ export const Timer = () => {
               <Button variant="outline" size="sm" onClick={handleCustomTime}>
                 Definir
               </Button>
+            </div>
+
+            {/* Sound Selector */}
+            <div className="flex items-center justify-center gap-2">
+              <Volume2 className="w-4 h-4 text-muted-foreground" />
+              <Select value={selectedSound} onValueChange={handleSoundChange}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SOUND_OPTIONS.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         )}
