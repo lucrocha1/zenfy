@@ -213,7 +213,16 @@ export const Performance = () => {
             </Button>
           </div>
           <div className="space-y-3">
-            <Progress value={goalProgress} className="h-3" />
+            <Progress 
+              value={goalProgress} 
+              className="h-3" 
+              indicatorClassName={todayMinutes >= dailyGoal ? (
+                streak >= 30 ? 'bg-gradient-to-r from-purple-500 to-violet-500' :
+                streak >= 7 ? 'bg-gradient-to-r from-amber-400 to-orange-400' :
+                streak >= 1 ? 'bg-gradient-to-r from-orange-400 to-red-500' :
+                'bg-gradient-to-r from-green-500 to-emerald-500'
+              ) : undefined}
+            />
             <div className="flex justify-between items-center">
               <span className="text-lg font-semibold text-foreground">
                 {todayMinutes} de {dailyGoal} min
