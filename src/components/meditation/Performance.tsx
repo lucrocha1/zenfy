@@ -56,14 +56,14 @@ const getProgressBarColor = (progress: number, streak: number, goalReached: bool
     if (streak >= 30) return 'bg-gradient-to-r from-purple-500 to-violet-500';
     if (streak >= 7) return 'bg-gradient-to-r from-amber-400 to-orange-400';
     if (streak >= 1) return 'bg-gradient-to-r from-orange-400 to-red-500';
-    return 'bg-gradient-to-r from-teal-500 to-emerald-500';
+    return 'bg-primary';
   }
   
-  // Progressive teal intensity based on percentage
-  if (progress >= 75) return 'bg-gradient-to-r from-teal-500 to-teal-400';
-  if (progress >= 50) return 'bg-gradient-to-r from-teal-400 to-teal-300';
-  if (progress >= 25) return 'bg-gradient-to-r from-teal-300 to-teal-200';
-  return 'bg-teal-200';
+  // Progressive primary intensity based on percentage
+  if (progress >= 75) return 'bg-primary';
+  if (progress >= 50) return 'bg-primary/80';
+  if (progress >= 25) return 'bg-primary/60';
+  return 'bg-primary/40';
 };
 
 const getFlameStyles = (streak: number) => {
