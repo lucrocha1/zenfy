@@ -1,8 +1,9 @@
 import { Timer } from '@/components/meditation/Timer';
 import { Performance } from '@/components/meditation/Performance';
+import { History } from '@/components/meditation/History';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Timer as TimerIcon, BarChart3 } from 'lucide-react';
+import { Timer as TimerIcon, BarChart3, History as HistoryIcon } from 'lucide-react';
 
 const Index = () => {
   return (
@@ -10,7 +11,7 @@ const Index = () => {
       <Tabs defaultValue="meditar" className="w-full">
         <div className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border z-10">
           <div className="max-w-2xl mx-auto px-4 flex items-center">
-            <TabsList className="flex-1 h-14 bg-transparent gap-4">
+            <TabsList className="flex-1 h-14 bg-transparent gap-2">
               <TabsTrigger 
                 value="meditar" 
                 className="flex-1 gap-2 data-[state=active]:bg-secondary"
@@ -25,6 +26,13 @@ const Index = () => {
                 <BarChart3 className="w-4 h-4" />
                 Desempenho
               </TabsTrigger>
+              <TabsTrigger 
+                value="historico" 
+                className="flex-1 gap-2 data-[state=active]:bg-secondary"
+              >
+                <HistoryIcon className="w-4 h-4" />
+                Histórico
+              </TabsTrigger>
             </TabsList>
             <ThemeToggle />
           </div>
@@ -36,6 +44,10 @@ const Index = () => {
         
         <TabsContent value="desempenho" className="mt-0">
           <Performance />
+        </TabsContent>
+
+        <TabsContent value="historico" className="mt-0">
+          <History />
         </TabsContent>
       </Tabs>
     </div>
