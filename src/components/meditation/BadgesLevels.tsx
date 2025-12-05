@@ -78,25 +78,20 @@ export const BadgesLevels = () => {
             </div>
           </div>
 
-          {/* Level progression with ranges */}
+          {/* Level progression */}
           <div className="mt-6 pt-4 border-t border-border">
             <p className="text-xs text-muted-foreground mb-3">Progressão de níveis</p>
             <div className="flex flex-wrap gap-2">
               {LEVELS.map((l) => (
                 <div
                   key={l.level}
-                  className={`px-3 py-2 rounded-lg text-xs transition-colors ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                     currentLevel.level >= l.level
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-muted-foreground'
                   }`}
                 >
-                  <p className="font-medium">{l.name}</p>
-                  <p className="opacity-80">
-                    {l.maxMinutes === Infinity 
-                      ? `${l.minMinutes}+ min` 
-                      : `${l.minMinutes}–${l.maxMinutes} min`}
-                  </p>
+                  {l.name}
                 </div>
               ))}
             </div>
