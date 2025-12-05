@@ -18,6 +18,21 @@ import {
   Tooltip,
 } from 'recharts';
 
+const getFlameStyles = (streak: number) => {
+  if (streak >= 30) {
+    // Purple for 1+ month
+    return { bg: 'bg-purple-100', icon: 'text-purple-500', glow: 'shadow-purple-300/50 shadow-lg' };
+  } else if (streak >= 7) {
+    // Gold for 1+ week
+    return { bg: 'bg-yellow-100', icon: 'text-yellow-500', glow: 'shadow-yellow-300/50 shadow-lg' };
+  } else if (streak >= 1) {
+    // Orange/red for active streak
+    return { bg: 'bg-orange-100', icon: 'text-orange-500', glow: '' };
+  }
+  // Gray for no streak
+  return { bg: 'bg-muted', icon: 'text-muted-foreground', glow: '' };
+};
+
 export const Performance = () => {
   const { sessions } = useMeditationSessions();
   
@@ -27,6 +42,7 @@ export const Performance = () => {
   const weeklyDuration = getTotalDuration(weeklySessions);
   const monthlyDuration = getTotalDuration(monthlySessions);
   const chartData = getWeeklyChartData(sessions);
+  const flameStyles = getFlameStyles(streak);
 
   return (
     <div className="min-h-[70vh] px-4 py-8">
@@ -36,8 +52,8 @@ export const Performance = () => {
         {/* Streak Card */}
         <Card className="p-6">
           <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-full ${streak >= 2 ? 'bg-orange-100' : 'bg-muted'}`}>
-              <Flame className={`w-6 h-6 ${streak >= 2 ? 'text-orange-500' : 'text-muted-foreground'}`} />
+            <div className={`p-3 rounded-full ${flameStyles.bg} ${flameStyles.glow}`}>
+              <Flame className={`w-6 h-6 ${flameStyles.icon}`} />
             </div>
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">Sequência</p>
