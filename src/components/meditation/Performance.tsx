@@ -10,7 +10,7 @@ import {
   getTodaySessions,
 } from '@/utils/meditationStats';
 import { calculateMaxStreak } from '@/utils/gamification';
-import { Flame, Clock, Calendar, Hash, Trophy } from 'lucide-react';
+import { Flame, Clock, Calendar, Hash, Trophy, Check } from 'lucide-react';
 import {
   AreaChart,
   Area,
@@ -19,7 +19,8 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts';
-import { format, subDays } from 'date-fns';
+import { format, subDays, startOfWeek, addDays, isSameDay } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const getChartColors = (streak: number) => {
   if (streak >= 30) {
@@ -34,32 +35,38 @@ const getFlameStyles = (streak: number) => {
   if (streak >= 30) {
     // Purple gradient for 30+ days
     return { 
-      bg: 'bg-white/20', 
-      icon: 'text-white drop-shadow-lg', 
+      bg: 'bg-white', 
+      icon: 'text-purple-500', 
       animate: 'animate-pulse', 
       cardGradient: 'bg-gradient-to-br from-purple-500 via-purple-400 to-violet-500',
       textColor: 'text-white',
-      subtitleColor: 'text-white/80'
+      subtitleColor: 'text-white/80',
+      checkBg: 'bg-purple-300',
+      checkIcon: 'text-purple-700'
     };
   } else if (streak >= 7) {
     // Gold gradient for 7-29 days
     return { 
-      bg: 'bg-white/20', 
-      icon: 'text-white drop-shadow-lg', 
+      bg: 'bg-white', 
+      icon: 'text-yellow-500', 
       animate: 'animate-pulse', 
       cardGradient: 'bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-400',
       textColor: 'text-white',
-      subtitleColor: 'text-white/80'
+      subtitleColor: 'text-white/80',
+      checkBg: 'bg-amber-200',
+      checkIcon: 'text-amber-700'
     };
   } else if (streak >= 1) {
     // Orange gradient for 1-6 days
     return { 
-      bg: 'bg-white/20', 
-      icon: 'text-white drop-shadow-lg', 
+      bg: 'bg-white', 
+      icon: 'text-orange-500', 
       animate: streak >= 2 ? 'animate-pulse' : '', 
       cardGradient: 'bg-gradient-to-br from-orange-400 via-orange-500 to-red-500',
       textColor: 'text-white',
-      subtitleColor: 'text-white/80'
+      subtitleColor: 'text-white/80',
+      checkBg: 'bg-orange-200',
+      checkIcon: 'text-orange-700'
     };
   }
   // No streak - neutral style
@@ -69,7 +76,9 @@ const getFlameStyles = (streak: number) => {
     animate: '', 
     cardGradient: '',
     textColor: 'text-foreground',
-    subtitleColor: 'text-muted-foreground'
+    subtitleColor: 'text-muted-foreground',
+    checkBg: 'bg-muted',
+    checkIcon: 'text-muted-foreground'
   };
 };
 
@@ -107,6 +116,23 @@ export const Performance = () => {
   const hasChartData = chartData.some(d => d.minutes > 0);
   const streakSubtitle = getStreakSubtitle(streak, sessions);
 
+  // Get current week days for the weekday display
+  const today = new Date();
+  const weekStart = startOfWeek(today, { weekStartsOn: 0 }); // Start on Sunday
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const day = addDays(weekStart, i);
+    const hasSession = sessions.some(s => isSameDay(new Date(s.date), day));
+    const isToday = isSameDay(day, today);
+    const isFuture = day > today;
+    return {
+      label: format(day, 'EEE', { locale: ptBR }).slice(0, 3),
+      date: day,
+      hasSession,
+      isToday,
+      isFuture
+    };
+  });
+
   return (
     <div className="min-h-[70vh] px-4 py-8">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -114,26 +140,54 @@ export const Performance = () => {
         
         {/* Streak Card */}
         <Card className={`p-6 overflow-hidden ${flameStyles.cardGradient}`}>
-          <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-full ${flameStyles.bg}`}>
-              <Flame className={`w-6 h-6 ${flameStyles.icon} ${flameStyles.animate}`} />
-            </div>
-            <div className="flex-1">
-              <p className={`text-sm ${flameStyles.subtitleColor}`}>Sequência de dias</p>
-              {streak > 0 ? (
-                <>
-                  <p className={`text-2xl font-semibold ${flameStyles.textColor}`}>
-                    {streak} {streak === 1 ? 'dia' : 'dias'} {streak >= 2 && 'seguidos'} {streak >= 2 && '🔥'}
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-4">
+              <div className={`p-3 rounded-full ${flameStyles.bg}`}>
+                <Flame className={`w-6 h-6 ${flameStyles.icon} ${flameStyles.animate}`} />
+              </div>
+              <div className="flex-1">
+                <p className={`text-sm ${flameStyles.subtitleColor}`}>Sequência de dias</p>
+                {streak > 0 ? (
+                  <>
+                    <p className={`text-2xl font-semibold ${flameStyles.textColor}`}>
+                      {streak} {streak === 1 ? 'dia' : 'dias'} {streak >= 2 && 'seguidos'} {streak >= 2 && '🔥'}
+                    </p>
+                    {streakSubtitle && (
+                      <p className={`text-sm ${flameStyles.subtitleColor} mt-1`}>{streakSubtitle}</p>
+                    )}
+                  </>
+                ) : (
+                  <p className={flameStyles.subtitleColor}>
+                    Você ainda não iniciou uma sequência. Que tal começar hoje?
                   </p>
-                  {streakSubtitle && (
-                    <p className={`text-sm ${flameStyles.subtitleColor} mt-1`}>{streakSubtitle}</p>
-                  )}
-                </>
-              ) : (
-                <p className={flameStyles.subtitleColor}>
-                  Você ainda não iniciou uma sequência. Que tal começar hoje?
-                </p>
-              )}
+                )}
+              </div>
+            </div>
+            
+            {/* Weekday Icons */}
+            <div className="flex justify-between items-center mt-2 bg-white/10 rounded-xl p-3">
+              {weekDays.map((day, index) => (
+                <div key={index} className="flex flex-col items-center gap-1">
+                  <div 
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      day.hasSession 
+                        ? `${flameStyles.checkBg}` 
+                        : day.isToday 
+                          ? 'bg-white/30 ring-2 ring-white/50' 
+                          : 'bg-white/10'
+                    }`}
+                  >
+                    {day.hasSession ? (
+                      <Check className={`w-4 h-4 ${flameStyles.checkIcon}`} />
+                    ) : day.isToday ? (
+                      <Flame className={`w-4 h-4 ${streak > 0 ? flameStyles.textColor : 'text-white/50'}`} />
+                    ) : null}
+                  </div>
+                  <span className={`text-xs capitalize ${day.isToday ? flameStyles.textColor + ' font-semibold' : flameStyles.subtitleColor}`}>
+                    {day.label}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </Card>
