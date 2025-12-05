@@ -178,15 +178,15 @@ export const Timer = () => {
               </div>
             </div>
 
-            {/* Sound Selectors */}
-            <div className="flex flex-col items-center gap-4 pt-2">
+            {/* Sound Selectors - Side by Side */}
+            <div className="flex flex-wrap justify-center gap-4 pt-2">
               {/* Ambient Sound */}
               <div className="flex flex-col items-center gap-2">
-                <span className="text-xs text-muted-foreground">Som durante a meditação</span>
-                <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Durante</span>
+                <div className="flex items-center gap-1.5">
                   <Music className="w-4 h-4 text-muted-foreground" />
                   <Select value={selectedAmbient} onValueChange={handleAmbientChange}>
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className="w-[130px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-popover">
@@ -202,11 +202,11 @@ export const Timer = () => {
 
               {/* Finish Sound */}
               <div className="flex flex-col items-center gap-2">
-                <span className="text-xs text-muted-foreground">Som ao finalizar</span>
-                <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Ao finalizar</span>
+                <div className="flex items-center gap-1.5">
                   <Volume2 className="w-4 h-4 text-muted-foreground" />
                   <Select value={selectedSound} onValueChange={handleSoundChange}>
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className="w-[130px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-popover">
