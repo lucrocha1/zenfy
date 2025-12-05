@@ -41,10 +41,9 @@ export const Timer = () => {
     playSound(value);
   };
   
-  const handleComplete = useCallback(() => {
+  const handleComplete = useCallback((duration: number) => {
     playSound(selectedSound);
     const now = new Date();
-    const duration = timer.totalSeconds;
     saveSession({
       started_at: new Date(now.getTime() - duration * 1000).toISOString(),
       ended_at: now.toISOString(),
@@ -53,7 +52,7 @@ export const Timer = () => {
     });
     setCompletedDuration(duration);
     setShowCompleteModal(true);
-  }, [selectedSound]);
+  }, [selectedSound, saveSession]);
   
   const timer = useTimer(handleComplete);
   
