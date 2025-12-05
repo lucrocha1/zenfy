@@ -7,13 +7,13 @@ import { useTimer } from '@/hooks/useTimer';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
 import { formatTime, getTodaySessions, getTotalDuration, calculateStreak } from '@/utils/meditationStats';
 import { playSound, getSavedSound, saveSound, SOUND_OPTIONS, SoundType } from '@/utils/sounds';
+import { SessionCompleteModal } from './SessionCompleteModal';
 import { Play, Pause, RotateCcw, Volume2 } from 'lucide-react';
-import { toast } from 'sonner';
 
 const QUICK_TIMES = [5, 10, 15, 20];
 
 const MOTIVATIONAL_QUOTES = [
-  "Comece pequeno. 5 minutos hoje já valem mais do que 0 minutos.",
+  "Comece pequeno. 5 min hoje já valem mais do que 0 min.",
   "Cada respiração é uma oportunidade de recomeçar.",
   "A paz interior começa com um momento de silêncio.",
   "Meditar é se encontrar no presente.",
@@ -23,6 +23,8 @@ export const Timer = () => {
   const [customMinutes, setCustomMinutes] = useState('');
   const [selectedSound, setSelectedSound] = useState<SoundType>('bell');
   const [quote] = useState(() => MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)]);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [completedDuration, setCompletedDuration] = useState(0);
   const { sessions, saveSession } = useMeditationSessions();
   
   const todaySessions = getTodaySessions(sessions);
@@ -42,13 +44,15 @@ export const Timer = () => {
   const handleComplete = useCallback(() => {
     playSound(selectedSound);
     const now = new Date();
+    const duration = timer.totalSeconds;
     saveSession({
-      started_at: new Date(now.getTime() - timer.totalSeconds * 1000).toISOString(),
+      started_at: new Date(now.getTime() - duration * 1000).toISOString(),
       ended_at: now.toISOString(),
-      duration_seconds: timer.totalSeconds,
+      duration_seconds: duration,
       date: now.toISOString().split('T')[0],
     });
-    toast.success('Sessão concluída! 🧘');
+    setCompletedDuration(duration);
+    setShowCompleteModal(true);
   }, [selectedSound]);
   
   const timer = useTimer(handleComplete);
@@ -67,7 +71,11 @@ export const Timer = () => {
 
   const handleCancel = () => {
     timer.reset();
-    toast.info('Sessão cancelada');
+  };
+
+  const handleCloseCompleteModal = () => {
+    setShowCompleteModal(false);
+    setCompletedDuration(0);
   };
   
   const isTimerSet = timer.totalSeconds > 0;
@@ -77,6 +85,13 @@ export const Timer = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 py-8">
+      <SessionCompleteModal
+        isOpen={showCompleteModal}
+        onClose={handleCloseCompleteModal}
+        sessions={sessions}
+        sessionDuration={completedDuration}
+      />
+
       <Card className="w-full max-w-md p-8 space-y-6">
         <h2 className="text-xl font-medium text-center text-foreground">
           Meditação de hoje
