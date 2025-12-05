@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { MeditationSession } from '@/types/meditation';
 import { calculateStreak, getTodaySessions, getTotalDuration, getDailyGoal } from '@/utils/meditationStats';
 import { BADGES, calculateMaxStreak } from '@/utils/gamification';
+import { playCelebrationSound } from '@/utils/sounds';
 import { Sparkles, Target } from 'lucide-react';
 
 interface SessionCompleteModalProps {
@@ -34,6 +36,17 @@ export const SessionCompleteModal = ({
   // Check if goal was reached with this session (for timed sessions)
   const previousTodayMinutes = todayMinutes - sessionMinutes;
   const goalReachedNow = !goalReachedDuringSession && previousTodayMinutes < dailyGoal && todayMinutes >= dailyGoal;
+
+  // Play celebration sound when goal is reached in timed session
+  useEffect(() => {
+    if (isOpen && goalReachedNow) {
+      // Small delay to let the modal animation start
+      const timer = setTimeout(() => {
+        playCelebrationSound();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, goalReachedNow]);
 
   // Find newly unlocked badges (simplified check - badges that are now unlocked)
   const unlockedBadges = BADGES.filter(b => b.isUnlocked(sessions, totalMinutes, maxStreak));
