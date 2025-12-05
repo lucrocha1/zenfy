@@ -47,7 +47,7 @@ const getChartColors = (streak: number) => {
   } else if (streak >= 7) {
     return { stroke: '#eab308', gradient: ['#eab308', '#f59e0b'] }; // Gold
   }
-  return { stroke: '#0f766e', gradient: ['#0f766e', '#14b8a6'] }; // Teal default (darker to match new primary)
+  return { stroke: '#2dd4bf', gradient: ['#2dd4bf', '#5eead4'] }; // Teal default (matches primary hsl(172, 66%, 50%))
 };
 
 const getProgressBarColor = (progress: number, streak: number, goalReached: boolean) => {
