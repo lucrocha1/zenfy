@@ -19,7 +19,7 @@ import {
   ambientPlayer
 } from '@/utils/sounds';
 import { SessionCompleteModal } from './SessionCompleteModal';
-import { Play, Pause, RotateCcw, Volume2, Music } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, Music, Infinity, Square } from 'lucide-react';
 
 const QUICK_TIMES = [5, 10, 15, 20];
 
@@ -37,6 +37,7 @@ export const Timer = () => {
   const [quote] = useState(() => MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)]);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [completedDuration, setCompletedDuration] = useState(0);
+  const [isFreeMode, setIsFreeMode] = useState(false);
   const { sessions, saveSession } = useMeditationSessions();
   
   const todaySessions = getTodaySessions(sessions);
@@ -71,13 +72,14 @@ export const Timer = () => {
     });
     setCompletedDuration(duration);
     setShowCompleteModal(true);
+    setIsFreeMode(false);
   }, [selectedSound, saveSession]);
   
   const timer = useTimer(handleComplete);
 
   // Start/stop ambient sound based on timer state
   useEffect(() => {
-    if (timer.status === 'running') {
+    if (timer.status === 'running' || timer.status === 'stopwatch') {
       ambientPlayer.start(selectedAmbient);
     } else if (timer.status === 'idle') {
       ambientPlayer.stop();
@@ -92,12 +94,19 @@ export const Timer = () => {
   }, [timer.status]);
   
   const handleQuickTime = (minutes: number) => {
+    setIsFreeMode(false);
     timer.setDuration(minutes);
+  };
+
+  const handleFreeMode = () => {
+    setIsFreeMode(true);
+    timer.setDuration(0);
   };
   
   const handleCustomTime = () => {
     const minutes = parseInt(customMinutes);
     if (minutes > 0 && minutes <= 180) {
+      setIsFreeMode(false);
       timer.setDuration(minutes);
       setCustomMinutes('');
     }
@@ -106,6 +115,11 @@ export const Timer = () => {
   const handleCancel = () => {
     ambientPlayer.stop();
     timer.reset();
+    setIsFreeMode(false);
+  };
+
+  const handleStopAndSave = () => {
+    timer.stopAndSave();
   };
 
   const handleCloseCompleteModal = () => {
@@ -113,10 +127,13 @@ export const Timer = () => {
     setCompletedDuration(0);
   };
   
-  const isTimerSet = timer.totalSeconds > 0;
+  const isTimerSet = timer.totalSeconds > 0 || isFreeMode;
   const isRunning = timer.status === 'running';
   const isPaused = timer.status === 'paused';
   const isIdle = timer.status === 'idle';
+  const isStopwatch = timer.status === 'stopwatch';
+
+  const displayTime = isStopwatch ? timer.elapsedSeconds : timer.remainingSeconds;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 py-8">
@@ -129,16 +146,21 @@ export const Timer = () => {
 
       <Card className="w-full max-w-md p-8 space-y-6">
         <h2 className="text-xl font-medium text-center text-foreground">
-          Meditação de hoje
+          {isStopwatch ? 'Meditação Livre' : 'Meditação de hoje'}
         </h2>
         
         {/* Timer Display */}
         <div className="text-center py-6">
           <div className={`text-7xl font-extralight tracking-wider transition-colors ${
-            isRunning ? 'text-primary' : 'text-foreground'
+            isRunning || isStopwatch ? 'text-primary' : 'text-foreground'
           }`}>
-            {formatTime(timer.remainingSeconds)}
+            {formatTime(displayTime)}
           </div>
+          {isStopwatch && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Medite pelo tempo que quiser
+            </p>
+          )}
         </div>
         
         {/* Quick Time Buttons */}
@@ -148,7 +170,7 @@ export const Timer = () => {
               {QUICK_TIMES.map(minutes => (
                 <Button
                   key={minutes}
-                  variant={timer.totalSeconds === minutes * 60 ? 'default' : 'outline'}
+                  variant={!isFreeMode && timer.totalSeconds === minutes * 60 ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => handleQuickTime(minutes)}
                   className="min-w-[4rem]"
@@ -156,6 +178,15 @@ export const Timer = () => {
                   {minutes} min
                 </Button>
               ))}
+              <Button
+                variant={isFreeMode ? 'default' : 'outline'}
+                size="sm"
+                onClick={handleFreeMode}
+                className="min-w-[4rem] gap-1"
+              >
+                <Infinity className="w-4 h-4" />
+                Livre
+              </Button>
             </div>
             
             {/* Custom Time Input */}
@@ -225,10 +256,17 @@ export const Timer = () => {
         
         {/* Control Buttons */}
         <div className="flex flex-col gap-3">
-          {isIdle && isTimerSet && (
+          {isIdle && isTimerSet && !isFreeMode && (
             <Button size="lg" onClick={timer.start} className="w-full gap-2">
               <Play className="w-5 h-5" />
               Iniciar
+            </Button>
+          )}
+
+          {isIdle && isFreeMode && (
+            <Button size="lg" onClick={timer.startStopwatch} className="w-full gap-2">
+              <Play className="w-5 h-5" />
+              Começar Meditação Livre
             </Button>
           )}
           
@@ -241,6 +279,19 @@ export const Timer = () => {
               <Button size="lg" variant="outline" onClick={handleCancel} className="w-full gap-2">
                 <RotateCcw className="w-5 h-5" />
                 Cancelar
+              </Button>
+            </>
+          )}
+
+          {isStopwatch && (
+            <>
+              <Button size="lg" onClick={handleStopAndSave} className="w-full gap-2">
+                <Square className="w-5 h-5" />
+                Encerrar e Salvar
+              </Button>
+              <Button size="lg" variant="outline" onClick={handleCancel} className="w-full gap-2">
+                <RotateCcw className="w-5 h-5" />
+                Cancelar sem salvar
               </Button>
             </>
           )}
