@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 
 type TimerStatus = 'idle' | 'running' | 'paused';
 
-export const useTimer = (onComplete: () => void) => {
+export const useTimer = (onComplete: (durationSeconds: number) => void) => {
   const [totalSeconds, setTotalSeconds] = useState(0);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [status, setStatus] = useState<TimerStatus>('idle');
@@ -34,7 +34,10 @@ export const useTimer = (onComplete: () => void) => {
         if (prev <= 1) {
           clearTimerInterval();
           setStatus('idle');
-          onComplete();
+          setTotalSeconds(current => {
+            onComplete(current);
+            return current;
+          });
           return 0;
         }
         return prev - 1;
@@ -56,7 +59,10 @@ export const useTimer = (onComplete: () => void) => {
         if (prev <= 1) {
           clearTimerInterval();
           setStatus('idle');
-          onComplete();
+          setTotalSeconds(current => {
+            onComplete(current);
+            return current;
+          });
           return 0;
         }
         return prev - 1;
