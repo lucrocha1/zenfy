@@ -126,6 +126,57 @@ export const playSound = (type: SoundType) => {
   }
 };
 
+// Celebration sound - ascending chimes for goal achievement
+export const playCelebrationSound = () => {
+  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  
+  // Ascending happy chimes
+  const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 - major chord arpeggio
+  const delays = [0, 0.12, 0.24, 0.36];
+  
+  notes.forEach((freq, i) => {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.setValueAtTime(freq, audioContext.currentTime + delays[i]);
+    oscillator.type = 'sine';
+    
+    // Bell-like envelope
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime + delays[i]);
+    gainNode.gain.linearRampToValueAtTime(0.25, audioContext.currentTime + delays[i] + 0.02);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + delays[i] + 0.8);
+    
+    oscillator.start(audioContext.currentTime + delays[i]);
+    oscillator.stop(audioContext.currentTime + delays[i] + 0.8);
+  });
+  
+  // Add a subtle shimmer/sparkle effect
+  setTimeout(() => {
+    const shimmerContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const sparkleFreqs = [1318.51, 1567.98, 2093.00]; // E6, G6, C7
+    
+    sparkleFreqs.forEach((freq, i) => {
+      const osc = shimmerContext.createOscillator();
+      const gain = shimmerContext.createGain();
+      
+      osc.connect(gain);
+      gain.connect(shimmerContext.destination);
+      
+      osc.frequency.setValueAtTime(freq, shimmerContext.currentTime);
+      osc.type = 'sine';
+      
+      gain.gain.setValueAtTime(0.08, shimmerContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, shimmerContext.currentTime + 0.5);
+      
+      osc.start(shimmerContext.currentTime + i * 0.05);
+      osc.stop(shimmerContext.currentTime + 0.5 + i * 0.05);
+    });
+  }, 400);
+};
+
 // ============= AMBIENT SOUNDS =============
 
 class AmbientSoundPlayer {

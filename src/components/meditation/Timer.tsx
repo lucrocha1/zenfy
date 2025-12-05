@@ -16,7 +16,8 @@ import {
   AmbientSoundType,
   getSavedAmbientSound,
   saveAmbientSound,
-  ambientPlayer
+  ambientPlayer,
+  playCelebrationSound
 } from '@/utils/sounds';
 import { SessionCompleteModal } from './SessionCompleteModal';
 import { Play, Pause, RotateCcw, Volume2, Music, Infinity, Square } from 'lucide-react';
@@ -90,6 +91,7 @@ export const Timer = () => {
       if (totalWithSession >= dailyGoal && todayMinutes < dailyGoal) {
         goalNotifiedRef.current = true;
         setGoalReachedDuringSession(true);
+        playCelebrationSound();
         toast.success('🎉 Meta diária atingida!', {
           description: `Você completou ${dailyGoal} minutos de meditação hoje!`,
           duration: 5000,
