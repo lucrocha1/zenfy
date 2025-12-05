@@ -80,6 +80,8 @@ export interface Badge {
   icon: string;
   unlockDescription: string;
   isUnlocked: (sessions: MeditationSession[], totalMinutes: number, maxStreak: number) => boolean;
+  getProgress: (sessions: MeditationSession[], totalMinutes: number, maxStreak: number) => { current: number; target: number } | null;
+  priority: number; // Lower = shows first
 }
 
 export const BADGES: Badge[] = [
@@ -90,6 +92,8 @@ export const BADGES: Badge[] = [
     icon: '🐣',
     unlockDescription: 'Complete 1 meditação',
     isUnlocked: (sessions) => sessions.length >= 1,
+    getProgress: (sessions) => ({ current: Math.min(sessions.length, 1), target: 1 }),
+    priority: 1,
   },
   {
     id: 'five_sessions',
@@ -98,6 +102,8 @@ export const BADGES: Badge[] = [
     icon: '🌱',
     unlockDescription: 'Complete 5 meditações',
     isUnlocked: (sessions) => sessions.length >= 5,
+    getProgress: (sessions) => ({ current: Math.min(sessions.length, 5), target: 5 }),
+    priority: 2,
   },
   {
     id: 'ten_sessions',
@@ -106,6 +112,8 @@ export const BADGES: Badge[] = [
     icon: '🌳',
     unlockDescription: 'Complete 10 meditações',
     isUnlocked: (sessions) => sessions.length >= 10,
+    getProgress: (sessions) => ({ current: Math.min(sessions.length, 10), target: 10 }),
+    priority: 3,
   },
   {
     id: 'streak_3',
@@ -114,6 +122,8 @@ export const BADGES: Badge[] = [
     icon: '🔥',
     unlockDescription: 'Medite 3 dias seguidos',
     isUnlocked: (_, __, maxStreak) => maxStreak >= 3,
+    getProgress: (_, __, maxStreak) => ({ current: Math.min(maxStreak, 3), target: 3 }),
+    priority: 4,
   },
   {
     id: 'streak_7',
@@ -122,6 +132,8 @@ export const BADGES: Badge[] = [
     icon: '🔥🔥',
     unlockDescription: 'Medite 7 dias seguidos',
     isUnlocked: (_, __, maxStreak) => maxStreak >= 7,
+    getProgress: (_, __, maxStreak) => ({ current: Math.min(maxStreak, 7), target: 7 }),
+    priority: 5,
   },
   {
     id: 'complete_week',
@@ -130,6 +142,8 @@ export const BADGES: Badge[] = [
     icon: '📅',
     unlockDescription: 'Medite todos os dias da semana',
     isUnlocked: (sessions) => hasCompleteWeek(sessions),
+    getProgress: () => null, // Complex to calculate days this week
+    priority: 6,
   },
   {
     id: 'one_hour',
@@ -138,6 +152,8 @@ export const BADGES: Badge[] = [
     icon: '🌙',
     unlockDescription: 'Medite 60 minutos no total',
     isUnlocked: (_, totalMinutes) => totalMinutes >= 60,
+    getProgress: (_, totalMinutes) => ({ current: Math.min(totalMinutes, 60), target: 60 }),
+    priority: 7,
   },
   {
     id: 'five_hours',
@@ -146,5 +162,7 @@ export const BADGES: Badge[] = [
     icon: '✨',
     unlockDescription: 'Medite 300 minutos no total',
     isUnlocked: (_, totalMinutes) => totalMinutes >= 300,
+    getProgress: (_, totalMinutes) => ({ current: Math.min(totalMinutes, 300), target: 300 }),
+    priority: 8,
   },
 ];

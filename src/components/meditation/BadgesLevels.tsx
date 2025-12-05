@@ -8,6 +8,7 @@ import {
   getLevelProgress,
   calculateMaxStreak,
   BADGES,
+  LEVELS,
 } from '@/utils/gamification';
 import { Trophy, Star, Check, Lock } from 'lucide-react';
 
@@ -19,6 +20,28 @@ export const BadgesLevels = () => {
   const currentLevel = getCurrentLevel(totalMinutes);
   const nextLevel = getNextLevel(currentLevel.level);
   const { percent, remaining } = getLevelProgress(totalMinutes);
+
+  // Sort badges: unlocked first, then by proximity to being unlocked
+  const sortedBadges = [...BADGES].sort((a, b) => {
+    const aUnlocked = a.isUnlocked(sessions, totalMinutes, maxStreak);
+    const bUnlocked = b.isUnlocked(sessions, totalMinutes, maxStreak);
+    
+    if (aUnlocked && !bUnlocked) return -1;
+    if (!aUnlocked && bUnlocked) return 1;
+    
+    if (!aUnlocked && !bUnlocked) {
+      // Sort by proximity (progress percentage)
+      const aProgress = a.getProgress(sessions, totalMinutes, maxStreak);
+      const bProgress = b.getProgress(sessions, totalMinutes, maxStreak);
+      
+      const aPercent = aProgress ? (aProgress.current / aProgress.target) : 0;
+      const bPercent = bProgress ? (bProgress.current / bProgress.target) : 0;
+      
+      return bPercent - aPercent; // Higher percentage = closer to unlock
+    }
+    
+    return a.priority - b.priority;
+  });
 
   return (
     <div className="min-h-[70vh] px-4 py-8">
@@ -43,36 +66,37 @@ export const BadgesLevels = () => {
           
           <div className="space-y-2">
             <Progress value={percent} className="h-3" />
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>{totalMinutes} min total</span>
+            <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+              <span>Você meditou {totalMinutes} min até agora</span>
               {nextLevel ? (
-                <span>Faltam {remaining} min para o próximo nível</span>
+                <span className="text-foreground font-medium">
+                  Faltam {remaining} min para o Nível {nextLevel.level} – {nextLevel.name}
+                </span>
               ) : (
-                <span className="text-primary font-medium">Nível máximo alcançado! 🏆</span>
+                <span className="text-primary font-medium">Nível máximo alcançado!</span>
               )}
             </div>
           </div>
 
-          {/* Level progression */}
+          {/* Level progression with ranges */}
           <div className="mt-6 pt-4 border-t border-border">
             <p className="text-xs text-muted-foreground mb-3">Progressão de níveis</p>
             <div className="flex flex-wrap gap-2">
-              {[
-                { level: 1, name: 'Iniciante', min: 0 },
-                { level: 2, name: 'Constante', min: 50 },
-                { level: 3, name: 'Focado', min: 200 },
-                { level: 4, name: 'Zen', min: 500 },
-                { level: 5, name: 'Mestre Zen', min: 1000 },
-              ].map((l) => (
+              {LEVELS.map((l) => (
                 <div
                   key={l.level}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  className={`px-3 py-2 rounded-lg text-xs transition-colors ${
                     currentLevel.level >= l.level
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-muted-foreground'
                   }`}
                 >
-                  {l.name}
+                  <p className="font-medium">{l.name}</p>
+                  <p className="opacity-80">
+                    {l.maxMinutes === Infinity 
+                      ? `${l.minMinutes}+ min` 
+                      : `${l.minMinutes}–${l.maxMinutes} min`}
+                  </p>
                 </div>
               ))}
             </div>
@@ -87,22 +111,24 @@ export const BadgesLevels = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {BADGES.map((badge) => {
+            {sortedBadges.map((badge) => {
               const unlocked = badge.isUnlocked(sessions, totalMinutes, maxStreak);
+              const progress = badge.getProgress(sessions, totalMinutes, maxStreak);
+              const remaining = progress ? progress.target - progress.current : null;
               
               return (
                 <Card
                   key={badge.id}
                   className={`p-4 transition-all ${
                     unlocked
-                      ? 'bg-card border-primary/20'
-                      : 'bg-muted/50 opacity-60'
+                      ? 'bg-card border-primary/30 shadow-sm'
+                      : 'bg-muted/50 opacity-75'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div
                       className={`text-2xl flex-shrink-0 ${
-                        unlocked ? '' : 'grayscale'
+                        unlocked ? '' : 'grayscale opacity-50'
                       }`}
                     >
                       {badge.icon}
@@ -117,15 +143,22 @@ export const BadgesLevels = () => {
                           {badge.name}
                         </p>
                         {unlocked && (
-                          <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                            <Check className="w-3 h-3 text-primary" />
+                          </div>
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {unlocked ? badge.description : badge.unlockDescription}
+                        {unlocked 
+                          ? badge.description 
+                          : remaining !== null && remaining > 0
+                            ? `${badge.unlockDescription} (faltam ${remaining}${badge.id.includes('hour') ? ' min' : ''})`
+                            : badge.unlockDescription
+                        }
                       </p>
                     </div>
                     {!unlocked && (
-                      <Lock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <Lock className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
                     )}
                   </div>
                 </Card>
@@ -139,15 +172,15 @@ export const BadgesLevels = () => {
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <p className="text-2xl font-semibold text-foreground">{sessions.length}</p>
-              <p className="text-xs text-muted-foreground">Sessões</p>
+              <p className="text-xs text-muted-foreground">Sessões totais</p>
             </div>
             <div>
               <p className="text-2xl font-semibold text-foreground">{totalMinutes}</p>
-              <p className="text-xs text-muted-foreground">Minutos</p>
+              <p className="text-xs text-muted-foreground">Minutos totais</p>
             </div>
             <div>
               <p className="text-2xl font-semibold text-foreground">{maxStreak}</p>
-              <p className="text-xs text-muted-foreground">Max streak</p>
+              <p className="text-xs text-muted-foreground">Maior sequência</p>
             </div>
           </div>
         </Card>
