@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Download, Trash2, Save, FileJson, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,11 +22,11 @@ const Profile = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Initialize display name when profile loads
-  useState(() => {
+  useEffect(() => {
     if (profile?.display_name) {
       setDisplayName(profile.display_name);
     }
-  });
+  }, [profile]);
 
   const handleSave = async () => {
     setIsSaving(true);
