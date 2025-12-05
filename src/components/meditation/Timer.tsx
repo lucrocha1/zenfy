@@ -6,9 +6,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useTimer } from '@/hooks/useTimer';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
 import { formatTime, getTodaySessions, getTotalDuration, calculateStreak } from '@/utils/meditationStats';
-import { playSound, getSavedSound, saveSound, SOUND_OPTIONS, SoundType } from '@/utils/sounds';
+import { 
+  playSound, 
+  getSavedSound, 
+  saveSound, 
+  SOUND_OPTIONS, 
+  SoundType,
+  AMBIENT_SOUND_OPTIONS,
+  AmbientSoundType,
+  getSavedAmbientSound,
+  saveAmbientSound,
+  ambientPlayer
+} from '@/utils/sounds';
 import { SessionCompleteModal } from './SessionCompleteModal';
-import { Play, Pause, RotateCcw, Volume2 } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, Music } from 'lucide-react';
 
 const QUICK_TIMES = [5, 10, 15, 20];
 
@@ -22,6 +33,7 @@ const MOTIVATIONAL_QUOTES = [
 export const Timer = () => {
   const [customMinutes, setCustomMinutes] = useState('');
   const [selectedSound, setSelectedSound] = useState<SoundType>('bell');
+  const [selectedAmbient, setSelectedAmbient] = useState<AmbientSoundType>('silent');
   const [quote] = useState(() => MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)]);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [completedDuration, setCompletedDuration] = useState(0);
@@ -33,6 +45,7 @@ export const Timer = () => {
 
   useEffect(() => {
     setSelectedSound(getSavedSound());
+    setSelectedAmbient(getSavedAmbientSound());
   }, []);
 
   const handleSoundChange = (value: SoundType) => {
@@ -40,8 +53,14 @@ export const Timer = () => {
     saveSound(value);
     playSound(value);
   };
+
+  const handleAmbientChange = (value: AmbientSoundType) => {
+    setSelectedAmbient(value);
+    saveAmbientSound(value);
+  };
   
   const handleComplete = useCallback((duration: number) => {
+    ambientPlayer.stop();
     playSound(selectedSound);
     const now = new Date();
     saveSession({
@@ -55,6 +74,22 @@ export const Timer = () => {
   }, [selectedSound, saveSession]);
   
   const timer = useTimer(handleComplete);
+
+  // Start/stop ambient sound based on timer state
+  useEffect(() => {
+    if (timer.status === 'running') {
+      ambientPlayer.start(selectedAmbient);
+    } else if (timer.status === 'idle') {
+      ambientPlayer.stop();
+    }
+  }, [timer.status, selectedAmbient]);
+
+  // Stop ambient on pause
+  useEffect(() => {
+    if (timer.status === 'paused') {
+      ambientPlayer.stop();
+    }
+  }, [timer.status]);
   
   const handleQuickTime = (minutes: number) => {
     timer.setDuration(minutes);
@@ -69,6 +104,7 @@ export const Timer = () => {
   };
 
   const handleCancel = () => {
+    ambientPlayer.stop();
     timer.reset();
   };
 
@@ -142,23 +178,46 @@ export const Timer = () => {
               </div>
             </div>
 
-            {/* Sound Selector */}
-            <div className="flex flex-col items-center gap-2 pt-2">
-              <span className="text-xs text-muted-foreground">Som ao finalizar</span>
-              <div className="flex items-center gap-2">
-                <Volume2 className="w-4 h-4 text-muted-foreground" />
-                <Select value={selectedSound} onValueChange={handleSoundChange}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    {SOUND_OPTIONS.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            {/* Sound Selectors */}
+            <div className="flex flex-col items-center gap-4 pt-2">
+              {/* Ambient Sound */}
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-xs text-muted-foreground">Som durante a meditação</span>
+                <div className="flex items-center gap-2">
+                  <Music className="w-4 h-4 text-muted-foreground" />
+                  <Select value={selectedAmbient} onValueChange={handleAmbientChange}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      {AMBIENT_SOUND_OPTIONS.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Finish Sound */}
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-xs text-muted-foreground">Som ao finalizar</span>
+                <div className="flex items-center gap-2">
+                  <Volume2 className="w-4 h-4 text-muted-foreground" />
+                  <Select value={selectedSound} onValueChange={handleSoundChange}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      {SOUND_OPTIONS.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           </div>
