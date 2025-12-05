@@ -47,7 +47,23 @@ const getChartColors = (streak: number) => {
   } else if (streak >= 7) {
     return { stroke: '#eab308', gradient: ['#eab308', '#f59e0b'] }; // Gold
   }
-  return { stroke: '#3b82f6', gradient: ['#3b82f6', '#60a5fa'] }; // Blue default
+  return { stroke: '#14b8a6', gradient: ['#14b8a6', '#2dd4bf'] }; // Teal default
+};
+
+const getProgressBarColor = (progress: number, streak: number, goalReached: boolean) => {
+  // If goal reached, use streak colors
+  if (goalReached) {
+    if (streak >= 30) return 'bg-gradient-to-r from-purple-500 to-violet-500';
+    if (streak >= 7) return 'bg-gradient-to-r from-amber-400 to-orange-400';
+    if (streak >= 1) return 'bg-gradient-to-r from-orange-400 to-red-500';
+    return 'bg-gradient-to-r from-teal-500 to-emerald-500';
+  }
+  
+  // Progressive teal intensity based on percentage
+  if (progress >= 75) return 'bg-gradient-to-r from-teal-500 to-teal-400';
+  if (progress >= 50) return 'bg-gradient-to-r from-teal-400 to-teal-300';
+  if (progress >= 25) return 'bg-gradient-to-r from-teal-300 to-teal-200';
+  return 'bg-teal-200';
 };
 
 const getFlameStyles = (streak: number) => {
@@ -216,12 +232,7 @@ export const Performance = () => {
             <Progress 
               value={goalProgress} 
               className="h-3" 
-              indicatorClassName={todayMinutes >= dailyGoal ? (
-                streak >= 30 ? 'bg-gradient-to-r from-purple-500 to-violet-500' :
-                streak >= 7 ? 'bg-gradient-to-r from-amber-400 to-orange-400' :
-                streak >= 1 ? 'bg-gradient-to-r from-orange-400 to-red-500' :
-                'bg-gradient-to-r from-green-500 to-emerald-500'
-              ) : undefined}
+              indicatorClassName={getProgressBarColor(goalProgress, streak, todayMinutes >= dailyGoal)}
             />
             <div className="flex justify-between items-center">
               <span className="text-lg font-semibold text-foreground">
