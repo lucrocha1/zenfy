@@ -1,5 +1,6 @@
 import { Timer } from '@/components/meditation/Timer';
 import { Performance } from '@/components/meditation/Performance';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Timer as TimerIcon, BarChart3 } from 'lucide-react';
 
@@ -8,8 +9,8 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Tabs defaultValue="meditar" className="w-full">
         <div className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border z-10">
-          <div className="max-w-2xl mx-auto px-4">
-            <TabsList className="w-full h-14 bg-transparent gap-4">
+          <div className="max-w-2xl mx-auto px-4 flex items-center">
+            <TabsList className="flex-1 h-14 bg-transparent gap-4">
               <TabsTrigger 
                 value="meditar" 
                 className="flex-1 gap-2 data-[state=active]:bg-secondary"
@@ -25,6 +26,7 @@ const Index = () => {
                 Desempenho
               </TabsTrigger>
             </TabsList>
+            <ThemeToggle />
           </div>
         </div>
         
