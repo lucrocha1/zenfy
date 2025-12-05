@@ -119,17 +119,28 @@ export const Performance = () => {
   // Get current week days for the weekday display
   const today = new Date();
   const weekStart = startOfWeek(today, { weekStartsOn: 0 }); // Start on Sunday
+  
+  // Check if user has ever meditated (to show ice flames for missed days)
+  const hasEverMeditated = sessions.length > 0;
+  const firstSessionDate = hasEverMeditated 
+    ? new Date(Math.min(...sessions.map(s => new Date(s.date).getTime())))
+    : null;
+  
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const day = addDays(weekStart, i);
     const hasSession = sessions.some(s => isSameDay(new Date(s.date), day));
     const isToday = isSameDay(day, today);
     const isFuture = day > today;
+    const isPast = day < today && !isToday;
+    // Missed day: past day, no session, and user has started meditating before or on this day
+    const isMissed = isPast && !hasSession && hasEverMeditated && firstSessionDate && day >= firstSessionDate;
     return {
       label: format(day, 'EEE', { locale: ptBR }).slice(0, 3),
       date: day,
       hasSession,
       isToday,
-      isFuture
+      isFuture,
+      isMissed
     };
   });
 
@@ -164,30 +175,45 @@ export const Performance = () => {
               </div>
             </div>
             
-            {/* Weekday Icons */}
-            <div className="flex justify-between items-center mt-3 bg-white/10 rounded-xl py-3 px-3 sm:px-4">
-              {weekDays.map((day, index) => (
-                <div key={index} className="flex flex-col items-center gap-1.5">
-                  <div 
-                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all ${
-                      day.hasSession 
-                        ? `${flameStyles.checkBg}` 
-                        : day.isToday 
-                          ? 'bg-white/30 ring-2 ring-white/60' 
-                          : 'bg-white/15 border border-white/20'
-                    }`}
-                  >
-                    {day.hasSession ? (
-                      <Check className={`w-4 h-4 sm:w-5 sm:h-5 ${flameStyles.checkIcon}`} strokeWidth={2.5} />
-                    ) : day.isToday ? (
-                      <Flame className={`w-4 h-4 sm:w-5 sm:h-5 ${streak > 0 ? flameStyles.textColor : 'text-white/50'}`} />
-                    ) : null}
+            {/* Weekday Icons with connecting line */}
+            <div className="relative mt-3 bg-white/10 rounded-xl py-3 px-3 sm:px-4">
+              {/* Connecting line */}
+              <div className="absolute top-1/2 left-6 right-6 sm:left-8 sm:right-8 h-0.5 bg-white/20 -translate-y-3 sm:-translate-y-2.5" />
+              
+              <div className="relative flex justify-between items-center">
+                {weekDays.map((day, index) => (
+                  <div key={index} className="flex flex-col items-center gap-1.5 z-10">
+                    <div 
+                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all ${
+                        day.hasSession 
+                          ? `${flameStyles.checkBg}` 
+                          : day.isMissed
+                            ? 'bg-sky-400/30 border border-sky-300/50'
+                            : day.isToday 
+                              ? 'bg-white/30 ring-2 ring-white/60' 
+                              : 'bg-white/15 border border-white/20'
+                      }`}
+                    >
+                      {day.hasSession ? (
+                        <Check className={`w-4 h-4 sm:w-5 sm:h-5 ${flameStyles.checkIcon}`} strokeWidth={2.5} />
+                      ) : day.isMissed ? (
+                        <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-sky-300" />
+                      ) : day.isToday ? (
+                        <Flame className={`w-4 h-4 sm:w-5 sm:h-5 ${streak > 0 ? flameStyles.textColor : 'text-white/50'}`} />
+                      ) : null}
+                    </div>
+                    <span className={`text-[10px] sm:text-[11px] capitalize ${
+                      day.isToday 
+                        ? flameStyles.textColor + ' font-bold' 
+                        : day.isMissed 
+                          ? 'text-sky-300' 
+                          : flameStyles.subtitleColor
+                    }`}>
+                      {day.label}
+                    </span>
                   </div>
-                  <span className={`text-[10px] sm:text-[11px] capitalize ${day.isToday ? flameStyles.textColor + ' font-bold' : flameStyles.subtitleColor}`}>
-                    {day.label}
-                  </span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </Card>
