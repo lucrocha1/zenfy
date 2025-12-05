@@ -1,12 +1,41 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Timer } from '@/components/meditation/Timer';
+import { Performance } from '@/components/meditation/Performance';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Timer as TimerIcon, BarChart3 } from 'lucide-react';
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Tabs defaultValue="meditar" className="w-full">
+        <div className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border z-10">
+          <div className="max-w-2xl mx-auto px-4">
+            <TabsList className="w-full h-14 bg-transparent gap-4">
+              <TabsTrigger 
+                value="meditar" 
+                className="flex-1 gap-2 data-[state=active]:bg-secondary"
+              >
+                <TimerIcon className="w-4 h-4" />
+                Meditar
+              </TabsTrigger>
+              <TabsTrigger 
+                value="desempenho" 
+                className="flex-1 gap-2 data-[state=active]:bg-secondary"
+              >
+                <BarChart3 className="w-4 h-4" />
+                Desempenho
+              </TabsTrigger>
+            </TabsList>
+          </div>
+        </div>
+        
+        <TabsContent value="meditar" className="mt-0">
+          <Timer />
+        </TabsContent>
+        
+        <TabsContent value="desempenho" className="mt-0">
+          <Performance />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
