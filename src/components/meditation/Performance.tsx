@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
+import { useDailyGoal } from '@/hooks/useDailyGoal';
 import {
   formatDuration,
   getWeeklySessions,
@@ -12,8 +13,6 @@ import {
   getMonthlyChartData,
   getYearlyChartData,
   getTodaySessions,
-  getDailyGoal,
-  saveDailyGoal,
   analyzeBestTimeToMeditate,
 } from '@/utils/meditationStats';
 import { calculateMaxStreak } from '@/utils/gamification';
@@ -135,7 +134,7 @@ const getStreakSubtitle = (streak: number, sessions: any[]) => {
 
 export const Performance = () => {
   const { sessions } = useMeditationSessions();
-  const [dailyGoal, setDailyGoal] = useState(getDailyGoal());
+  const { dailyGoal, saveDailyGoal } = useDailyGoal();
   const [tempGoal, setTempGoal] = useState(dailyGoal);
   const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
   const [chartPeriod, setChartPeriod] = useState<'week' | 'month' | 'year'>('week');
@@ -171,7 +170,6 @@ export const Performance = () => {
   
   const handleSaveGoal = () => {
     saveDailyGoal(tempGoal);
-    setDailyGoal(tempGoal);
     setIsGoalDialogOpen(false);
   };
   const streakSubtitle = getStreakSubtitle(streak, sessions);

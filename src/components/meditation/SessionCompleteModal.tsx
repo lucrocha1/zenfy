@@ -5,10 +5,11 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { MeditationSession } from '@/types/meditation';
-import { calculateStreak, getTodaySessions, getTotalDuration, getDailyGoal } from '@/utils/meditationStats';
+import { calculateStreak, getTodaySessions, getTotalDuration } from '@/utils/meditationStats';
 import { BADGES, calculateMaxStreak } from '@/utils/gamification';
 import { playCelebrationSound } from '@/utils/sounds';
 import { Sparkles, Target } from 'lucide-react';
+import { useDailyGoal } from '@/hooks/useDailyGoal';
 
 interface SessionCompleteModalProps {
   isOpen: boolean;
@@ -25,13 +26,13 @@ export const SessionCompleteModal = ({
   sessionDuration,
   goalReachedDuringSession = false,
 }: SessionCompleteModalProps) => {
+  const { dailyGoal } = useDailyGoal();
   const sessionMinutes = Math.round(sessionDuration / 60);
   const todaySessions = getTodaySessions(sessions);
   const todayMinutes = Math.round(getTotalDuration(todaySessions) / 60);
   const streak = calculateStreak(sessions);
   const totalMinutes = Math.round(getTotalDuration(sessions) / 60);
   const maxStreak = calculateMaxStreak(sessions);
-  const dailyGoal = getDailyGoal();
 
   // Check if goal was reached with this session (for timed sessions)
   const previousTodayMinutes = todayMinutes - sessionMinutes;
