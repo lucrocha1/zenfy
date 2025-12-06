@@ -142,13 +142,11 @@ export const useProfile = () => {
     if (!user) return { error: new Error('User not authenticated') };
 
     try {
-      // Delete user data first (cascade should handle most, but let's be explicit)
-      await supabase.from('meditation_sessions').delete().eq('user_id', user.id);
-      await supabase.from('streak_freezes').delete().eq('user_id', user.id);
-      await supabase.from('user_challenges').delete().eq('user_id', user.id);
-      await supabase.from('profiles').delete().eq('id', user.id);
+      // Call the edge function to delete user data and auth record
+      const { error: deleteError } = await supabase.functions.invoke('delete-user');
+      if (deleteError) throw deleteError;
 
-      // Sign out the user (the actual auth.users deletion would need a server-side function)
+      // Sign out after successful deletion
       const { error } = await supabase.auth.signOut();
       
       return { error };
