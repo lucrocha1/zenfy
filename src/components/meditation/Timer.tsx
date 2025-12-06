@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTimer } from '@/hooks/useTimer';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
-import { formatTime, getTodaySessions, getTotalDuration, calculateStreak, getDailyGoal } from '@/utils/meditationStats';
+import { useDailyGoal } from '@/hooks/useDailyGoal';
+import { formatTime, getTodaySessions, getTotalDuration, calculateStreak } from '@/utils/meditationStats';
 import { 
   playSound, 
   getSavedSound, 
@@ -43,11 +44,11 @@ export const Timer = () => {
   const [goalReachedDuringSession, setGoalReachedDuringSession] = useState(false);
   const goalNotifiedRef = useRef(false);
   const { sessions, saveSession } = useMeditationSessions();
+  const { dailyGoal } = useDailyGoal();
   
   const todaySessions = getTodaySessions(sessions);
   const todayMinutes = Math.round(getTotalDuration(todaySessions) / 60);
   const streak = calculateStreak(sessions);
-  const dailyGoal = getDailyGoal();
 
   useEffect(() => {
     setSelectedSound(getSavedSound());
