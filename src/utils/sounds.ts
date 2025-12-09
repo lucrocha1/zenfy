@@ -186,6 +186,33 @@ class AmbientSoundPlayer {
   private oscillators: OscillatorNode[] = [];
   private isPlaying = false;
   private currentType: AmbientSoundType = 'silent';
+  private silentAudio: HTMLAudioElement | null = null;
+
+  constructor() {
+    // Set up visibility change listener to resume audio when coming back
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && this.isPlaying && this.audioContext) {
+          // Resume audio context if it was suspended
+          if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+          }
+        }
+      });
+    }
+  }
+
+  // Create a silent audio element to help keep audio alive on mobile
+  private createSilentAudio() {
+    if (this.silentAudio) return;
+    
+    // Create a very short silent audio using data URI
+    // This helps keep the audio session alive on some mobile browsers
+    const silentDataUri = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+    this.silentAudio = new Audio(silentDataUri);
+    this.silentAudio.loop = true;
+    this.silentAudio.volume = 0.01; // Nearly silent
+  }
 
   start(type: AmbientSoundType) {
     if (type === 'silent') return;
@@ -197,6 +224,14 @@ class AmbientSoundPlayer {
     this.gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
     this.gainNode.connect(this.audioContext.destination);
     this.isPlaying = true;
+
+    // Start silent audio to help keep audio session alive on mobile
+    this.createSilentAudio();
+    if (this.silentAudio) {
+      this.silentAudio.play().catch(() => {
+        // Ignore errors - this is just a helper
+      });
+    }
 
     switch (type) {
       case 'rain':
@@ -219,6 +254,13 @@ class AmbientSoundPlayer {
 
   stop() {
     this.isPlaying = false;
+    
+    // Stop silent audio helper
+    if (this.silentAudio) {
+      this.silentAudio.pause();
+      this.silentAudio.currentTime = 0;
+    }
+    
     this.sourceNodes.forEach(node => {
       try { node.stop(); } catch {}
     });
@@ -231,6 +273,20 @@ class AmbientSoundPlayer {
       this.audioContext.close();
       this.audioContext = null;
     }
+  }
+
+  // Resume audio if it was interrupted (e.g., by phone call or screen lock)
+  resume() {
+    if (this.isPlaying && this.audioContext && this.audioContext.state === 'suspended') {
+      this.audioContext.resume();
+    }
+    if (this.silentAudio && this.isPlaying) {
+      this.silentAudio.play().catch(() => {});
+    }
+  }
+
+  getIsPlaying() {
+    return this.isPlaying;
   }
 
   private createNoiseBuffer(duration: number): AudioBuffer {
