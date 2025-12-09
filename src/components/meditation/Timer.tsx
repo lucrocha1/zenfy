@@ -124,6 +124,20 @@ export const Timer = () => {
       ambientPlayer.stop();
     }
   }, [timer.status]);
+
+  // Resume ambient sound when app comes back to foreground during meditation
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        if (timer.status === 'running' || timer.status === 'stopwatch') {
+          ambientPlayer.resume();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [timer.status]);
   
   const handleQuickTime = (minutes: number) => {
     setIsFreeMode(false);
