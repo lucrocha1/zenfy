@@ -35,10 +35,12 @@ export const getLevelProgress = (totalMinutes: number) => {
 };
 
 // Calculate max streak ever achieved
-export const calculateMaxStreak = (sessions: MeditationSession[]): number => {
-  if (sessions.length === 0) return 0;
+export const calculateMaxStreak = (sessions: MeditationSession[], freezeDates: string[] = []): number => {
+  if (sessions.length === 0 && freezeDates.length === 0) return 0;
   
-  const uniqueDates = [...new Set(sessions.map(s => s.date))].sort();
+  const sessionDates = new Set(sessions.map(s => s.date));
+  const allActiveDates = new Set([...sessionDates, ...freezeDates]);
+  const uniqueDates = [...allActiveDates].sort();
   if (uniqueDates.length === 0) return 0;
   
   let maxStreak = 1;

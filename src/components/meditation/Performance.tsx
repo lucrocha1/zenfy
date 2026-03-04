@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
 import { useDailyGoal } from '@/hooks/useDailyGoal';
+import { useStreakFreeze } from '@/hooks/useStreakFreeze';
 import {
   formatDuration,
   getWeeklySessions,
@@ -135,12 +136,14 @@ const getStreakSubtitle = (streak: number, sessions: any[]) => {
 export const Performance = () => {
   const { sessions } = useMeditationSessions();
   const { dailyGoal, saveDailyGoal } = useDailyGoal();
+  const { getFreezeDates } = useStreakFreeze();
   const [tempGoal, setTempGoal] = useState(dailyGoal);
   const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
   const [chartPeriod, setChartPeriod] = useState<'week' | 'month' | 'year'>('week');
   
-  const streak = calculateStreak(sessions);
-  const maxStreak = calculateMaxStreak(sessions);
+  const freezeDates = getFreezeDates();
+  const streak = calculateStreak(sessions, freezeDates);
+  const maxStreak = calculateMaxStreak(sessions, freezeDates);
   const weeklySessions = getWeeklySessions(sessions);
   const monthlySessions = getMonthlySessions(sessions);
   const weeklyDuration = getTotalDuration(weeklySessions);

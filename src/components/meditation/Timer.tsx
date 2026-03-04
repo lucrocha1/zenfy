@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useTimer } from '@/hooks/useTimer';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
 import { useDailyGoal } from '@/hooks/useDailyGoal';
+import { useStreakFreeze } from '@/hooks/useStreakFreeze';
 import { formatTime, getTodaySessions, getTotalDuration, calculateStreak } from '@/utils/meditationStats';
 import { 
   playSound, 
@@ -46,10 +47,11 @@ export const Timer = () => {
   const goalNotifiedRef = useRef(false);
   const { sessions, saveSession } = useMeditationSessions();
   const { dailyGoal } = useDailyGoal();
+  const { getFreezeDates } = useStreakFreeze();
   
   const todaySessions = getTodaySessions(sessions);
   const todayMinutes = Math.round(getTotalDuration(todaySessions) / 60);
-  const streak = calculateStreak(sessions);
+  const streak = calculateStreak(sessions, getFreezeDates());
 
   useEffect(() => {
     setSelectedSound(getSavedSound());
