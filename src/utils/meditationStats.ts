@@ -12,16 +12,6 @@ import {
   isSameDay
 } from 'date-fns';
 
-const DAILY_GOAL_KEY = 'meditation_daily_goal';
-
-export const getDailyGoal = (): number => {
-  const saved = localStorage.getItem(DAILY_GOAL_KEY);
-  return saved ? parseInt(saved) : 10; // Default 10 minutes
-};
-
-export const saveDailyGoal = (minutes: number) => {
-  localStorage.setItem(DAILY_GOAL_KEY, String(minutes));
-};
 
 export const formatDuration = (seconds: number): string => {
   const hours = Math.floor(seconds / 3600);
