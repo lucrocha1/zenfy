@@ -183,7 +183,7 @@ export const BadgesLevels = () => {
             <h3 className="text-lg font-medium text-foreground">Conquistas</h3>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 px-0">
             {sortedBadges.map((badge) => {
               const unlocked = badge.isUnlocked(sessions, totalMinutes, maxStreak);
               const progress = badge.getProgress(sessions, totalMinutes, maxStreak);

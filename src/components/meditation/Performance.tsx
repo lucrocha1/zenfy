@@ -292,7 +292,7 @@ export const Performance = () => {
 
         {/* Daily Goal Dialog */}
         <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Definir Meta Diária</DialogTitle>
             </DialogHeader>
@@ -422,20 +422,20 @@ export const Performance = () => {
             <h3 className="text-sm font-medium text-foreground">Tempo meditado</h3>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <Card className="p-4 text-center">
-              <p className="text-xl font-semibold text-foreground">
+            <Card className="p-3 sm:p-4 text-center">
+              <p className="text-lg sm:text-xl font-semibold text-foreground truncate">
                 {formatDuration(weeklyDuration)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Esta semana</p>
             </Card>
-            <Card className="p-4 text-center">
-              <p className="text-xl font-semibold text-foreground">
+            <Card className="p-3 sm:p-4 text-center">
+              <p className="text-lg sm:text-xl font-semibold text-foreground truncate">
                 {formatDuration(monthlyDuration)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Este mês</p>
             </Card>
-            <Card className="p-4 text-center col-span-2 sm:col-span-1">
-              <p className="text-xl font-semibold text-foreground">
+            <Card className="p-3 sm:p-4 text-center col-span-2 sm:col-span-1">
+              <p className="text-lg sm:text-xl font-semibold text-foreground truncate">
                 {formatDuration(totalDuration)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Total</p>
@@ -450,16 +450,16 @@ export const Performance = () => {
             <h3 className="text-sm font-medium text-foreground">Quantidade de sessões</h3>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <Card className="p-4 text-center">
-              <p className="text-2xl font-semibold text-foreground">{weeklySessions.length}</p>
+            <Card className="p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl font-semibold text-foreground truncate">{weeklySessions.length}</p>
               <p className="text-xs text-muted-foreground mt-1">Esta semana</p>
             </Card>
-            <Card className="p-4 text-center">
-              <p className="text-2xl font-semibold text-foreground">{monthlySessions.length}</p>
+            <Card className="p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl font-semibold text-foreground truncate">{monthlySessions.length}</p>
               <p className="text-xs text-muted-foreground mt-1">Este mês</p>
             </Card>
-            <Card className="p-4 text-center col-span-2 sm:col-span-1">
-              <p className="text-2xl font-semibold text-foreground">{sessions.length}</p>
+            <Card className="p-3 sm:p-4 text-center col-span-2 sm:col-span-1">
+              <p className="text-xl sm:text-2xl font-semibold text-foreground truncate">{sessions.length}</p>
               <p className="text-xs text-muted-foreground mt-1">Total</p>
             </Card>
           </div>

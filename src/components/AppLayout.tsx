@@ -35,16 +35,16 @@ export const AppLayout = () => {
 
       <div className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border z-10">
         <div className="max-w-2xl mx-auto px-2 sm:px-4 flex items-center">
-          <nav className="flex-1 h-14 flex items-center gap-0.5 sm:gap-1">
+          <nav className="flex-1 h-14 flex items-center gap-1 sm:gap-1">
             {NAV_ITEMS.map(({ to, icon: Icon, label, end }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={end}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-2 sm:px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-1.5 sm:px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground"
                 activeClassName="bg-secondary text-foreground shadow"
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">{label}</span>
               </NavLink>
             ))}

@@ -35,7 +35,7 @@ export const CelebrationModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md border-none bg-gradient-to-b from-primary/10 to-background overflow-hidden">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto border-none bg-gradient-to-b from-primary/10 to-background overflow-x-hidden">
         {/* Confetti particles */}
         {showConfetti && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
