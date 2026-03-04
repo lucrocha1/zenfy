@@ -55,7 +55,7 @@ export const SessionCompleteModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md border-none bg-gradient-to-b from-primary/5 to-background">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto border-none bg-gradient-to-b from-primary/5 to-background">
         <div className="flex flex-col items-center text-center py-6">
           {/* Success Icon */}
           <div className="relative mb-4">

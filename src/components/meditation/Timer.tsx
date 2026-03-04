@@ -204,7 +204,7 @@ export const Timer = () => {
         
         {/* Timer Display */}
         <div className="text-center py-6">
-          <div className={`text-8xl font-extralight tracking-wider transition-all duration-300 ${
+          <div className={`text-6xl sm:text-8xl font-extralight tracking-wider transition-all duration-300 ${
             isRunning || isStopwatch 
               ? 'text-primary drop-shadow-[0_0_15px_hsl(var(--primary)/0.3)]' 
               : 'text-foreground'
