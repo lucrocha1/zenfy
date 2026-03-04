@@ -27,6 +27,7 @@ import {
   YAxis,
   ResponsiveContainer,
   Tooltip,
+  ReferenceLine,
 } from 'recharts';
 import { format, subDays, startOfWeek, addDays, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -166,6 +167,13 @@ export const Performance = () => {
   const flameStyles = getFlameStyles(streak);
   const chartColors = getChartColors(streak);
   
+  // Calculate weekly average for reference line
+  const weeklyAvg = (() => {
+    const daysWithData = weeklyChartData.filter(d => d.minutes > 0);
+    if (daysWithData.length === 0) return 0;
+    return Math.round(daysWithData.reduce((sum, d) => sum + d.minutes, 0) / daysWithData.length);
+  })();
+  
   const { analysis: timeAnalysis, bestPeriod } = analyzeBestTimeToMeditate(sessions);
   
   const hasAnyData = totalDuration > 0 || sessions.length > 0;
@@ -230,11 +238,19 @@ export const Performance = () => {
             </Button>
           </div>
           <div className="space-y-3">
-            <Progress 
-              value={goalProgress} 
-              className="h-3" 
-              indicatorClassName={getProgressBarColor(goalProgress, streak, todayMinutes >= dailyGoal)}
-            />
+            <div className="relative">
+              <Progress 
+                value={goalProgress} 
+                className="h-3" 
+                indicatorClassName={getProgressBarColor(goalProgress, streak, todayMinutes >= dailyGoal)}
+              >
+                {goalProgress > 30 && (
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-white mix-blend-difference">
+                    {Math.round(goalProgress)}%
+                  </span>
+                )}
+              </Progress>
+            </div>
             <div className="flex justify-between items-center">
               <span className="text-lg font-semibold text-foreground">
                 {todayMinutes} de {dailyGoal} min
@@ -322,15 +338,15 @@ export const Performance = () => {
                               ? 'bg-sky-400/30 border border-sky-300/50'
                               : day.isToday 
                                 ? 'bg-white/30 ring-2 ring-white/60' 
-                                : 'bg-white/15 border border-white/20'
+                                : 'bg-white/10 border border-dashed border-white/30'
                         }`}
                       >
                         {day.hasSession ? (
                           <Check className={`w-4 h-4 sm:w-5 sm:h-5 ${flameStyles.checkIcon}`} strokeWidth={2.5} />
                         ) : day.isMissed ? (
                           <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-sky-300" />
-                        ) : day.isToday ? (
-                          <Flame className={`w-4 h-4 sm:w-5 sm:h-5 ${streak > 0 ? flameStyles.textColor : 'text-white/50'}`} />
+                        ) : day.isToday && !day.hasSession ? (
+                          <Flame className={`w-4 h-4 sm:w-5 sm:h-5 animate-pulse ${streak > 0 ? flameStyles.textColor : 'text-white/50'}`} />
                         ) : null}
                       </div>
                       <span className={`text-[10px] sm:text-[11px] capitalize ${
@@ -361,6 +377,7 @@ export const Performance = () => {
               <Trophy className="w-5 h-5 text-yellow-500" />
               <p className="text-sm text-foreground">
                 Seu melhor foi <span className="font-semibold">{maxStreak} dias seguidos</span> 🔥
+                <span className="text-muted-foreground"> · Atual: {streak} {streak === 1 ? 'dia' : 'dias'}</span>
               </p>
             </div>
           </Card>
@@ -434,18 +451,21 @@ export const Performance = () => {
               <h3 className="text-sm font-medium text-foreground">Quando você medita</h3>
             </div>
             <div className="space-y-3">
-              {timeAnalysis.map((item) => (
-                <div key={item.period} className="space-y-1">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="flex items-center gap-2">
-                      <span>{item.icon}</span>
-                      <span className="text-foreground">{item.period}</span>
-                    </span>
-                    <span className="text-muted-foreground">{item.percentage}%</span>
+              {(() => {
+                const maxPercentage = Math.max(...timeAnalysis.map(i => i.percentage), 1);
+                return timeAnalysis.map((item) => (
+                  <div key={item.period} className="space-y-1">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="flex items-center gap-2">
+                        <span>{item.icon}</span>
+                        <span className="text-foreground">{item.period}</span>
+                      </span>
+                      <span className="text-muted-foreground">{item.percentage}%</span>
+                    </div>
+                    <Progress value={(item.percentage / maxPercentage) * 100} className="h-2" />
                   </div>
-                  <Progress value={item.percentage} className="h-2" />
-                </div>
-              ))}
+                ));
+              })()}
               {bestPeriod && (
                 <p className="text-sm text-muted-foreground pt-2 border-t border-border mt-3">
                   Você costuma meditar {bestPeriod === 'Manhã' ? 'pela manhã' : 
@@ -507,6 +527,20 @@ export const Performance = () => {
                       labelStyle={{ color: 'hsl(var(--foreground))' }}
                       formatter={(value: number) => [`${value} min`, 'Meditação']}
                     />
+                    {weeklyAvg > 0 && (
+                      <ReferenceLine
+                        y={weeklyAvg}
+                        stroke="hsl(var(--muted-foreground))"
+                        strokeDasharray="4 4"
+                        strokeOpacity={0.5}
+                        label={{
+                          value: `${weeklyAvg} min`,
+                          position: 'right',
+                          fill: 'hsl(var(--muted-foreground))',
+                          fontSize: 10,
+                        }}
+                      />
+                    )}
                     <Area
                       type="monotone"
                       dataKey="minutes"
