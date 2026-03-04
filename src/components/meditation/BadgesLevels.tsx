@@ -13,8 +13,16 @@ import {
   BADGES,
   LEVELS,
 } from '@/utils/gamification';
-import { Trophy, Star, Check, Lock, Share2 } from 'lucide-react';
+import { Trophy, Star, Lock, Share2, Hash, Clock, Flame } from 'lucide-react';
 import { ShareModal } from './ShareModal';
+
+const LEVEL_EMOJIS: Record<number, string> = {
+  1: '🌱',
+  2: '🌿',
+  3: '🎯',
+  4: '🧘',
+  5: '👑',
+};
 
 export const BadgesLevels = () => {
   const { sessions } = useMeditationSessions();
@@ -33,7 +41,6 @@ export const BadgesLevels = () => {
     const shareUrl = `${window.location.origin}/share`;
     const shareText = `Tô usando o Zenfy pra criar o hábito de meditar 😌\nJá estou no ${levelName} e acumulando conquistas.\nDá uma olhada no meu progresso e vê se tu aguenta me acompanhar:\n👉 ${shareUrl}`;
 
-    // Try Web Share API first
     if (navigator.share) {
       try {
         await navigator.share({
@@ -43,7 +50,6 @@ export const BadgesLevels = () => {
         });
         return;
       } catch (err) {
-        // User cancelled or error - fall through to modal
         if ((err as Error).name !== 'AbortError') {
           setShareModalOpen(true);
         }
@@ -51,11 +57,10 @@ export const BadgesLevels = () => {
       }
     }
 
-    // Fallback to modal
     setShareModalOpen(true);
   };
 
-  // Sort badges: unlocked first, then by proximity to being unlocked
+  // Sort badges: unlocked first (by priority), then locked by progress % desc
   const sortedBadges = [...BADGES].sort((a, b) => {
     const aUnlocked = a.isUnlocked(sessions, totalMinutes, maxStreak);
     const bUnlocked = b.isUnlocked(sessions, totalMinutes, maxStreak);
@@ -64,14 +69,13 @@ export const BadgesLevels = () => {
     if (!aUnlocked && bUnlocked) return 1;
     
     if (!aUnlocked && !bUnlocked) {
-      // Sort by proximity (progress percentage)
       const aProgress = a.getProgress(sessions, totalMinutes, maxStreak);
       const bProgress = b.getProgress(sessions, totalMinutes, maxStreak);
       
       const aPercent = aProgress ? (aProgress.current / aProgress.target) : 0;
       const bPercent = bProgress ? (bProgress.current / bProgress.target) : 0;
       
-      return bPercent - aPercent; // Higher percentage = closer to unlock
+      return bPercent - aPercent;
     }
     
     return a.priority - b.priority;
@@ -98,8 +102,8 @@ export const BadgesLevels = () => {
         {/* Level Card */}
         <Card className="p-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 rounded-full bg-primary/10">
-              <Trophy className="w-6 h-6 text-primary" />
+            <div className="text-4xl">
+              {LEVEL_EMOJIS[currentLevel.level] || '🌱'}
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Seu nível</p>
@@ -110,9 +114,16 @@ export const BadgesLevels = () => {
           </div>
           
           <div className="space-y-2">
-            <Progress value={percent} className="h-3" />
+            <div className="relative">
+              <Progress value={percent} className="h-3">
+                {percent > 25 && (
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-white mix-blend-difference">
+                    {totalMinutes} / {nextLevel ? nextLevel.minMinutes : totalMinutes} min
+                  </span>
+                )}
+              </Progress>
+            </div>
             <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-              <span>Você meditou {totalMinutes} min até agora</span>
               {nextLevel ? (
                 <span className="text-foreground font-medium">
                   Faltam {remaining} min para o Nível {nextLevel.level} – {nextLevel.name}
@@ -136,7 +147,7 @@ export const BadgesLevels = () => {
                       : 'bg-muted text-muted-foreground'
                   }`}
                 >
-                  {l.name}
+                  {LEVEL_EMOJIS[l.level]} {l.name}
                 </div>
               ))}
             </div>
@@ -154,51 +165,57 @@ export const BadgesLevels = () => {
             {sortedBadges.map((badge) => {
               const unlocked = badge.isUnlocked(sessions, totalMinutes, maxStreak);
               const progress = badge.getProgress(sessions, totalMinutes, maxStreak);
-              const remaining = progress ? progress.target - progress.current : null;
+              const progressPercent = progress ? Math.min((progress.current / progress.target) * 100, 100) : 0;
               
               return (
                 <Card
                   key={badge.id}
                   className={`p-4 transition-all ${
                     unlocked
-                      ? 'bg-card border-primary/30 shadow-sm'
-                      : 'bg-muted/50 opacity-75'
+                      ? 'border-primary shadow-sm'
+                      : 'bg-muted/30 opacity-60'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div
-                      className={`text-2xl flex-shrink-0 ${
-                        unlocked ? '' : 'grayscale opacity-50'
+                      className={`flex-shrink-0 ${
+                        unlocked ? 'text-3xl' : 'text-2xl grayscale opacity-50'
                       }`}
                     >
                       {badge.icon}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p
-                          className={`font-medium text-sm ${
-                            unlocked ? 'text-foreground' : 'text-muted-foreground'
-                          }`}
-                        >
-                          {badge.name}
-                        </p>
-                        {unlocked && (
-                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                            <Check className="w-3 h-3 text-primary" />
-                          </div>
-                        )}
-                      </div>
+                      <p
+                        className={`font-medium text-sm ${
+                          unlocked ? 'text-foreground' : 'text-muted-foreground'
+                        }`}
+                      >
+                        {badge.name}
+                      </p>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {unlocked 
                           ? badge.description 
-                          : remaining !== null && remaining > 0
-                            ? `${badge.unlockDescription} (faltam ${remaining}${badge.id.includes('hour') ? ' min' : ''})`
-                            : badge.unlockDescription
+                          : badge.unlockDescription
                         }
                       </p>
+                      {/* Progress bar for locked badges */}
+                      {!unlocked && progress && (
+                        <div className="mt-2 space-y-1">
+                          <Progress value={progressPercent} className="h-1.5" />
+                          <p className="text-[10px] text-muted-foreground">
+                            {progress.current} / {progress.target}
+                            {badge.id.includes('hour') || badge.id.includes('one_hour') || badge.id.includes('five_hours') || badge.id.includes('ten_hours') || badge.id.includes('twentyfour_hours') || badge.id.includes('fifty_hours') || badge.id.includes('hundred_hours')
+                              ? ' min'
+                              : badge.id.includes('streak') || badge.id.includes('long_session') || badge.id.includes('marathon')
+                                ? ' dias'
+                                : ' sessões'
+                            }
+                          </p>
+                        </div>
+                      )}
                     </div>
                     {!unlocked && (
-                      <Lock className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
+                      <Lock className="w-3 h-3 text-muted-foreground/40 flex-shrink-0 mt-0.5" />
                     )}
                   </div>
                 </Card>
@@ -208,17 +225,20 @@ export const BadgesLevels = () => {
         </div>
 
         {/* Stats summary */}
-        <Card className="p-4 bg-muted/30">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
+        <Card className="p-5">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="flex flex-col items-center gap-1.5">
+              <Hash className="w-4 h-4 text-muted-foreground" />
               <p className="text-2xl font-semibold text-foreground">{sessions.length}</p>
-              <p className="text-xs text-muted-foreground">Sessões totais</p>
+              <p className="text-xs text-muted-foreground">Sessões</p>
             </div>
-            <div>
+            <div className="flex flex-col items-center gap-1.5">
+              <Clock className="w-4 h-4 text-muted-foreground" />
               <p className="text-2xl font-semibold text-foreground">{totalMinutes}</p>
-              <p className="text-xs text-muted-foreground">Minutos totais</p>
+              <p className="text-xs text-muted-foreground">Minutos</p>
             </div>
-            <div>
+            <div className="flex flex-col items-center gap-1.5">
+              <Flame className="w-4 h-4 text-muted-foreground" />
               <p className="text-2xl font-semibold text-foreground">{maxStreak}</p>
               <p className="text-xs text-muted-foreground">Maior sequência</p>
             </div>
