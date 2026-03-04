@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Download, Trash2, Save, FileJson, FileSpreadsheet } from 'lucide-react';
+import { ArrowLeft, User, Download, Trash2, Save, FileJson, FileSpreadsheet, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -114,15 +114,12 @@ const Profile = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Avatar */}
-            <div className="flex items-center gap-4">
+            {/* Avatar - centered */}
+            <div className="flex flex-col items-center gap-2 pb-2">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-semibold text-primary">
                 {(displayName || profile?.display_name || user?.email || '?')[0].toUpperCase()}
               </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">Avatar</p>
-                <p className="text-sm">Baseado na inicial do seu nome</p>
-              </div>
+              <p className="text-xs text-muted-foreground">Baseado na inicial do seu nome</p>
             </div>
 
             {/* Display Name */}
@@ -195,32 +192,53 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        {/* Danger Zone */}
-        <Card className="border-destructive/50">
+        {/* About Zenfy */}
+        <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-destructive">
-              <Trash2 className="w-5 h-5" />
-              Zona de Perigo
+            <CardTitle className="flex items-center gap-2">
+              <Info className="w-5 h-5" />
+              Sobre o Zenfy
             </CardTitle>
-            <CardDescription>
-              Ações irreversíveis
-            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2">
             <p className="text-sm text-muted-foreground">
-              Ao excluir sua conta, todos os seus dados serão permanentemente removidos, 
-              incluindo sessões de meditação, conquistas e configurações.
+              App de meditação criado para ajudar você a manter uma prática consistente.
             </p>
-            <Button 
-              variant="destructive" 
-              onClick={() => setShowDeleteModal(true)}
-              className="w-full"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Excluir minha conta
-            </Button>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Versão</span>
+              <span className="font-medium text-foreground">v1.0.0</span>
+            </div>
           </CardContent>
         </Card>
+
+        {/* Danger Zone — extra spacing */}
+        <div className="pt-4">
+          <Card className="border-destructive/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <Trash2 className="w-5 h-5" />
+                Zona de Perigo
+              </CardTitle>
+              <CardDescription>
+                Ações irreversíveis
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Ao excluir sua conta, todos os seus dados serão permanentemente removidos, 
+                incluindo sessões de meditação, conquistas e configurações.
+              </p>
+              <Button 
+                variant="destructive" 
+                onClick={() => setShowDeleteModal(true)}
+                className="w-full"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Excluir minha conta
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
