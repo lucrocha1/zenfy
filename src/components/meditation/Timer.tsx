@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -74,7 +75,7 @@ export const Timer = () => {
       started_at: new Date(now.getTime() - duration * 1000).toISOString(),
       ended_at: now.toISOString(),
       duration_seconds: duration,
-      date: now.toISOString().split('T')[0],
+      date: format(now, 'yyyy-MM-dd'),
     });
     setCompletedDuration(duration);
     setShowCompleteModal(true);
