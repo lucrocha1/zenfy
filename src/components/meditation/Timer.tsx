@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useTimer } from '@/hooks/useTimer';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
 import { useDailyGoal } from '@/hooks/useDailyGoal';
@@ -23,7 +24,7 @@ import {
   playCelebrationSound
 } from '@/utils/sounds';
 import { SessionCompleteModal } from './SessionCompleteModal';
-import { Play, Pause, RotateCcw, Volume2, Music, Infinity, Square } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, Music, Infinity, Square, SlidersHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 
 const QUICK_TIMES = [5, 10, 15, 20];
@@ -44,6 +45,7 @@ export const Timer = () => {
   const [completedDuration, setCompletedDuration] = useState(0);
   const [isFreeMode, setIsFreeMode] = useState(false);
   const [goalReachedDuringSession, setGoalReachedDuringSession] = useState(false);
+  const [customOpen, setCustomOpen] = useState(false);
   const goalNotifiedRef = useRef(false);
   const { sessions, saveSession } = useMeditationSessions();
   const { dailyGoal } = useDailyGoal();
@@ -194,15 +196,17 @@ export const Timer = () => {
         goalReachedDuringSession={goalReachedDuringSession}
       />
 
-      <Card className="w-full max-w-md p-8 space-y-6">
+      <Card className="w-full max-w-md p-8 space-y-6 bg-gradient-to-b from-primary/5 to-transparent">
         <h2 className="text-xl font-medium text-center text-foreground">
           {isStopwatch ? 'Meditação Livre' : 'Meditação de hoje'}
         </h2>
         
         {/* Timer Display */}
         <div className="text-center py-6">
-          <div className={`text-7xl font-extralight tracking-wider transition-colors ${
-            isRunning || isStopwatch ? 'text-primary' : 'text-foreground'
+          <div className={`text-8xl font-extralight tracking-wider transition-all duration-300 ${
+            isRunning || isStopwatch 
+              ? 'text-primary drop-shadow-[0_0_15px_hsl(var(--primary)/0.3)]' 
+              : 'text-foreground'
           }`}>
             {formatTime(displayTime)}
           </div>
@@ -216,48 +220,70 @@ export const Timer = () => {
         {/* Quick Time Buttons */}
         {isIdle && (
           <div className="space-y-4">
-            <div className="flex justify-center gap-2 flex-wrap">
-              {QUICK_TIMES.map(minutes => (
-                <Button
-                  key={minutes}
-                  variant={!isFreeMode && timer.totalSeconds === minutes * 60 ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleQuickTime(minutes)}
-                  className="min-w-[4rem]"
-                >
-                  {minutes} min
-                </Button>
-              ))}
+            <div className="flex justify-center gap-2.5 flex-wrap">
+              {QUICK_TIMES.map(minutes => {
+                const isSelected = !isFreeMode && timer.totalSeconds === minutes * 60;
+                return (
+                  <Button
+                    key={minutes}
+                    variant={isSelected ? 'default' : 'outline'}
+                    onClick={() => handleQuickTime(minutes)}
+                    className={`rounded-full py-3 px-5 min-w-[4.5rem] transition-all ${
+                      isSelected 
+                        ? 'shadow-[0_0_12px_hsl(var(--primary)/0.4)] ring-2 ring-primary/30' 
+                        : ''
+                    }`}
+                  >
+                    {minutes} min
+                  </Button>
+                );
+              })}
               <Button
                 variant={isFreeMode ? 'default' : 'outline'}
-                size="sm"
                 onClick={handleFreeMode}
-                className="min-w-[4rem] gap-1"
+                className={`rounded-full py-3 px-5 min-w-[4.5rem] gap-1.5 transition-all ${
+                  isFreeMode 
+                    ? 'shadow-[0_0_12px_hsl(var(--primary)/0.4)] ring-2 ring-primary/30' 
+                    : ''
+                }`}
               >
                 <Infinity className="w-4 h-4" />
                 Livre
               </Button>
             </div>
             
-            {/* Custom Time Input */}
-            <div className="flex flex-col items-center gap-2 pt-2 border-t border-border">
-              <span className="text-xs text-muted-foreground">Tempo personalizado</span>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  value={customMinutes}
-                  onChange={(e) => setCustomMinutes(e.target.value)}
-                  className="w-16 text-center h-8"
-                  min={1}
-                  max={180}
-                  placeholder="10"
-                />
-                <span className="text-sm text-muted-foreground">min</span>
-                <Button variant="secondary" size="sm" onClick={handleCustomTime}>
-                  Aplicar
-                </Button>
+            {/* Custom Time - Collapsible */}
+            <Collapsible open={customOpen} onOpenChange={setCustomOpen}>
+              <div className="flex justify-center">
+                <CollapsibleTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="gap-1.5 text-muted-foreground hover:text-foreground"
+                  >
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    Personalizado
+                  </Button>
+                </CollapsibleTrigger>
               </div>
-            </div>
+              <CollapsibleContent className="pt-3">
+                <div className="flex items-center justify-center gap-2">
+                  <Input
+                    type="number"
+                    value={customMinutes}
+                    onChange={(e) => setCustomMinutes(e.target.value)}
+                    className="w-16 text-center h-9"
+                    min={1}
+                    max={180}
+                    placeholder="10"
+                  />
+                  <span className="text-sm text-muted-foreground">min</span>
+                  <Button variant="secondary" size="sm" onClick={handleCustomTime}>
+                    Aplicar
+                  </Button>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
 
             {/* Sound Selectors - Side by Side */}
             <div className="flex flex-wrap justify-center gap-4 pt-2">
@@ -267,7 +293,7 @@ export const Timer = () => {
                 <div className="flex items-center gap-1.5">
                   <Music className="w-4 h-4 text-muted-foreground" />
                   <Select value={selectedAmbient} onValueChange={handleAmbientChange}>
-                    <SelectTrigger className="w-[130px]">
+                    <SelectTrigger className="w-[150px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-popover">
@@ -287,7 +313,7 @@ export const Timer = () => {
                 <div className="flex items-center gap-1.5">
                   <Volume2 className="w-4 h-4 text-muted-foreground" />
                   <Select value={selectedSound} onValueChange={handleSoundChange}>
-                    <SelectTrigger className="w-[130px]">
+                    <SelectTrigger className="w-[150px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-popover">
@@ -362,12 +388,14 @@ export const Timer = () => {
       </Card>
 
       {/* Today's Quick Stats */}
-      <p className="mt-4 text-sm text-muted-foreground text-center">
-        Hoje: {todayMinutes} min · {todaySessions.length} {todaySessions.length === 1 ? 'sessão' : 'sessões'} · sequência {streak} {streak >= 1 && '🔥'}
-      </p>
+      <div className="mt-4 bg-muted/50 rounded-lg px-4 py-2">
+        <p className="text-sm text-muted-foreground text-center">
+          Hoje: {todayMinutes} min · {todaySessions.length} {todaySessions.length === 1 ? 'sessão' : 'sessões'} · sequência {streak} {streak >= 1 && '🔥'}
+        </p>
+      </div>
 
       {/* Motivational Quote */}
-      <p className="mt-2 text-sm text-muted-foreground/70 text-center max-w-sm px-4 italic">
+      <p className="mt-2 text-xs text-muted-foreground/50 text-center max-w-sm px-4 italic">
         "{quote}"
       </p>
     </div>
