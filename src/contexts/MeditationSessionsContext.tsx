@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 interface MeditationSessionsContextType {
   sessions: MeditationSession[];
   saveSession: (session: Omit<MeditationSession, 'id'>) => Promise<void>;
+  deleteSession: (id: string) => Promise<boolean>;
   isLoading: boolean;
   refreshSessions: () => Promise<void>;
 }
@@ -13,6 +14,7 @@ interface MeditationSessionsContextType {
 export const MeditationSessionsContext = createContext<MeditationSessionsContextType>({
   sessions: [],
   saveSession: async () => {},
+  deleteSession: async () => false,
   isLoading: true,
   refreshSessions: async () => {},
 });
@@ -90,8 +92,26 @@ export const MeditationSessionsProvider = ({ children }: { children: ReactNode }
     }
   }, [user]);
 
+  const deleteSession = useCallback(async (id: string): Promise<boolean> => {
+    if (!user) return false;
+
+    const { error } = await supabase
+      .from('meditation_sessions')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error deleting session:', error);
+      return false;
+    }
+
+    setSessions(prev => prev.filter(s => s.id !== id));
+    return true;
+  }, [user]);
+
   return (
-    <MeditationSessionsContext.Provider value={{ sessions, saveSession, isLoading, refreshSessions: fetchSessions }}>
+    <MeditationSessionsContext.Provider value={{ sessions, saveSession, deleteSession, isLoading, refreshSessions: fetchSessions }}>
       {children}
     </MeditationSessionsContext.Provider>
   );
