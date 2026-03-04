@@ -70,24 +70,26 @@ export const getTodaySessions = (sessions: MeditationSession[]): MeditationSessi
   return sessions.filter(s => s.date === today);
 };
 
-export const calculateStreak = (sessions: MeditationSession[]): number => {
-  if (sessions.length === 0) return 0;
-  
-  const uniqueDates = [...new Set(sessions.map(s => s.date))].sort().reverse();
+export const calculateStreak = (sessions: MeditationSession[], freezeDates: string[] = []): number => {
+  if (sessions.length === 0 && freezeDates.length === 0) return 0;
+
+  const sessionDates = new Set(sessions.map(s => s.date));
+  const allActiveDates = new Set([...sessionDates, ...freezeDates]);
+  const uniqueDates = [...allActiveDates].sort().reverse();
+
   if (uniqueDates.length === 0) return 0;
-  
+
   const today = format(new Date(), 'yyyy-MM-dd');
   const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd');
-  
-  // Check if the most recent session is today or yesterday
+
   const mostRecentDate = uniqueDates[0];
   if (mostRecentDate !== today && mostRecentDate !== yesterday) {
     return 0;
   }
-  
+
   let streak = 0;
   let checkDate = mostRecentDate === today ? new Date() : subDays(new Date(), 1);
-  
+
   for (const dateStr of uniqueDates) {
     const expectedDate = format(checkDate, 'yyyy-MM-dd');
     if (dateStr === expectedDate) {
@@ -97,7 +99,7 @@ export const calculateStreak = (sessions: MeditationSession[]): number => {
       break;
     }
   }
-  
+
   return streak;
 };
 

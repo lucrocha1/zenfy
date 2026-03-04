@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
+import { useStreakFreeze } from '@/hooks/useStreakFreeze';
 import { getTotalDuration } from '@/utils/meditationStats';
 import {
   getCurrentLevel,
@@ -17,10 +18,11 @@ import { ShareModal } from './ShareModal';
 
 export const BadgesLevels = () => {
   const { sessions } = useMeditationSessions();
+  const { getFreezeDates } = useStreakFreeze();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   
   const totalMinutes = Math.round(getTotalDuration(sessions) / 60);
-  const maxStreak = calculateMaxStreak(sessions);
+  const maxStreak = calculateMaxStreak(sessions, getFreezeDates());
   const currentLevel = getCurrentLevel(totalMinutes);
   const nextLevel = getNextLevel(currentLevel.level);
   const { percent, remaining } = getLevelProgress(totalMinutes);
