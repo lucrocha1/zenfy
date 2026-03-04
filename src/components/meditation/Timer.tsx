@@ -81,6 +81,7 @@ export const Timer = () => {
       duration_seconds: duration,
       date: format(now, 'yyyy-MM-dd'),
     });
+    toast.success('Sessão salva ✓', { duration: 2000 });
     setCompletedDuration(duration);
     setShowCompleteModal(true);
     setIsFreeMode(false);

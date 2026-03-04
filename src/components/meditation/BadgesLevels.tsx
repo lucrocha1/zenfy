@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { PageTransition } from '@/components/PageTransition';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
 import { useStreakFreeze } from '@/hooks/useStreakFreeze';
 import { getTotalDuration } from '@/utils/meditationStats';
@@ -25,7 +27,7 @@ const LEVEL_EMOJIS: Record<number, string> = {
 };
 
 export const BadgesLevels = () => {
-  const { sessions } = useMeditationSessions();
+  const { sessions, isLoading } = useMeditationSessions();
   const { getFreezeDates } = useStreakFreeze();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   
@@ -81,7 +83,27 @@ export const BadgesLevels = () => {
     return a.priority - b.priority;
   });
 
+  if (isLoading) {
+    return (
+      <div className="min-h-[70vh] px-4 py-8">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Skeleton className="h-8 w-40 mx-auto" />
+          <Skeleton className="h-44 w-full rounded-xl" />
+          <Skeleton className="h-6 w-28" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Skeleton className="h-24 rounded-xl" />
+            <Skeleton className="h-24 rounded-xl" />
+            <Skeleton className="h-24 rounded-xl" />
+            <Skeleton className="h-24 rounded-xl" />
+          </div>
+          <Skeleton className="h-24 w-full rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
   return (
+    <PageTransition>
     <div className="min-h-[70vh] px-4 py-8">
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="flex items-center justify-between mb-8">
@@ -252,5 +274,6 @@ export const BadgesLevels = () => {
         levelName={levelName}
       />
     </div>
+    </PageTransition>
   );
 };
