@@ -7,11 +7,16 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "./contexts/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 import { MeditationSessionsProvider } from "./contexts/MeditationSessionsContext";
+import { AppLayout } from "./components/AppLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Share from "./pages/Share";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import { Performance } from "./components/meditation/Performance";
+import { History } from "./components/meditation/History";
+import { BadgesLevels } from "./components/meditation/BadgesLevels";
+import { Reminders } from "./components/meditation/Reminders";
 
 const queryClient = new QueryClient();
 
@@ -49,10 +54,16 @@ const App = () => (
                   path="/"
                   element={
                     <ProtectedRoute>
-                      <Index />
+                      <AppLayout />
                     </ProtectedRoute>
                   }
-                />
+                >
+                  <Route index element={<Index />} />
+                  <Route path="progresso" element={<Performance />} />
+                  <Route path="historico" element={<History />} />
+                  <Route path="badges" element={<BadgesLevels />} />
+                  <Route path="lembretes" element={<Reminders />} />
+                </Route>
                 <Route
                   path="/perfil"
                   element={
