@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { PageTransition } from '@/components/PageTransition';
 import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
@@ -35,7 +37,7 @@ const getTotalDurationForSessions = (sessions: MeditationSession[]) => {
 
 export const History = () => {
   const navigate = useNavigate();
-  const { sessions, deleteSession } = useMeditationSessions();
+  const { sessions, deleteSession, isLoading } = useMeditationSessions();
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -76,8 +78,25 @@ export const History = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-[70vh] px-4 py-8">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Skeleton className="h-8 w-32 mx-auto" />
+          <Skeleton className="h-5 w-48" />
+          <Skeleton className="h-20 w-full rounded-xl" />
+          <Skeleton className="h-20 w-full rounded-xl" />
+          <Skeleton className="h-20 w-full rounded-xl" />
+          <Skeleton className="h-5 w-48" />
+          <Skeleton className="h-20 w-full rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
   if (sessions.length === 0) {
     return (
+      <PageTransition>
       <div className="min-h-[70vh] px-4 py-8 flex items-center justify-center">
         <div className="text-center">
           <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
@@ -93,10 +112,12 @@ export const History = () => {
           </Button>
         </div>
       </div>
+      </PageTransition>
     );
   }
 
   return (
+    <PageTransition>
     <div className="min-h-[70vh] px-4 py-8">
       <div className="max-w-2xl mx-auto space-y-6">
         <h2 className="text-2xl font-light text-center text-foreground mb-8">Histórico</h2>
@@ -177,5 +198,6 @@ export const History = () => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </PageTransition>
   );
 };

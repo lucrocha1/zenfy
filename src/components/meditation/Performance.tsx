@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { PageTransition } from '@/components/PageTransition';
 import { useMeditationSessions } from '@/hooks/useMeditationSessions';
 import { useDailyGoal } from '@/hooks/useDailyGoal';
 import { useStreakFreeze } from '@/hooks/useStreakFreeze';
@@ -135,7 +137,7 @@ const getStreakSubtitle = (streak: number, sessions: any[]) => {
 };
 
 export const Performance = () => {
-  const { sessions } = useMeditationSessions();
+  const { sessions, isLoading } = useMeditationSessions();
   const { dailyGoal, saveDailyGoal } = useDailyGoal();
   const { getFreezeDates } = useStreakFreeze();
   const [tempGoal, setTempGoal] = useState(dailyGoal);
@@ -213,7 +215,27 @@ export const Performance = () => {
     };
   });
 
+  if (isLoading) {
+    return (
+      <div className="min-h-[70vh] px-4 py-8">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Skeleton className="h-8 w-32 mx-auto" />
+          <Skeleton className="h-28 w-full rounded-xl" />
+          <Skeleton className="h-40 w-full rounded-xl" />
+          <Skeleton className="h-24 w-full rounded-xl" />
+          <div className="grid grid-cols-3 gap-3">
+            <Skeleton className="h-20 rounded-xl" />
+            <Skeleton className="h-20 rounded-xl" />
+            <Skeleton className="h-20 rounded-xl" />
+          </div>
+          <Skeleton className="h-48 w-full rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
   return (
+    <PageTransition>
     <div className="min-h-[70vh] px-4 py-8">
       <div className="max-w-2xl mx-auto space-y-6">
         <h2 className="text-2xl font-light text-center text-foreground mb-8">Progresso</h2>
@@ -593,5 +615,6 @@ export const Performance = () => {
         </Card>
       </div>
     </div>
+    </PageTransition>
   );
 };
